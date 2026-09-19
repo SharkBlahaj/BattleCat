@@ -1,0 +1,432 @@
+<title>Fate 抽軌路徑圖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#ECEEF3; --surface:#FFFFFF; --surface-2:#F5F6FA; --surface-3:#E4E7EF;
+  --ink:#171A24; --ink-2:#5B6178; --ink-3:#868CA1;
+  --line:#D3D7E2; --line-strong:#B6BCCC;
+  --gold:#8C6205; --gold-soft:#F6E8C4; --gold-line:#DFC182;
+  --rose:#A42A4D; --rose-soft:#F9DCE3; --rose-line:#E7B3C0;
+  --trackA:#17647F; --trackA-soft:#DDEDF3;
+  --trackB:#71428A; --trackB-soft:#EDE1F3;
+  --shadow:0 1px 2px rgba(23,26,36,.06), 0 8px 24px -12px rgba(23,26,36,.18);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --trackA:#66BAD4; --trackA-soft:#152A33;
+  --trackB:#C293D7; --trackB-soft:#271A30;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --trackA:#66BAD4; --trackA-soft:#152A33;
+  --trackB:#C293D7; --trackB-soft:#271A30;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans TC","Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  font-size:15px; line-height:1.6; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px; margin:0 auto; padding-inline:16px; padding-block:28px 64px}
+h1,h2,h3{font-family:"Archivo","Noto Sans TC",system-ui,sans-serif; text-wrap:balance; margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header{margin-bottom:26px}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-3); margin-bottom:10px;
+}
+h1{font-size:clamp(26px,5.4vw,38px); font-weight:800; letter-spacing:-.02em; line-height:1.15}
+.sub{color:var(--ink-2); margin-top:10px; max-width:62ch; font-size:14.5px}
+.meta{
+  display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:16px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3);
+}
+.meta b{color:var(--ink-2); font-weight:500}
+
+/* ---------- rule / section heads ---------- */
+.sec{margin-top:38px}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:14px}
+.sec-head h2{font-size:15px; font-weight:700; letter-spacing:.01em}
+.sec-head .hint{font-size:12.5px; color:var(--ink-3)}
+
+/* ---------- route cards ---------- */
+.routes{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px}
+.route{
+  all:unset; cursor:pointer; display:block; background:var(--surface);
+  border:1px solid var(--line); border-radius:3px; padding:14px 15px 13px;
+  transition:border-color .12s, background .12s;
+}
+.route:hover{border-color:var(--line-strong)}
+.route:focus-visible{outline:2px solid var(--trackA); outline-offset:2px}
+.route[aria-pressed="true"]{border-color:var(--ink); background:var(--surface)}
+.route[aria-pressed="true"] .rname{color:var(--ink)}
+.rtop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.rname{font-family:"Archivo","Noto Sans TC",sans-serif; font-weight:700; font-size:14.5px}
+.rcost{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:16px; font-variant-numeric:tabular-nums}
+.rmeta{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); margin-top:3px}
+.rblurb{font-size:12.5px; color:var(--ink-2); margin-top:9px; line-height:1.5}
+.rubers{display:flex; flex-wrap:wrap; gap:4px; margin-top:10px}
+.ub{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.02em;
+  padding:2px 6px; border-radius:2px; background:var(--gold-soft); color:var(--gold);
+  border:1px solid var(--gold-line);
+}
+.ub.tgt{background:var(--rose-soft); color:var(--rose); border-color:var(--rose-line)}
+
+/* ---------- step list ---------- */
+.steps{
+  margin-top:14px; background:var(--surface); border:1px solid var(--line);
+  border-radius:3px; overflow:hidden;
+}
+.step{display:grid; grid-template-columns:26px 1fr; gap:12px; padding:12px 15px; border-top:1px solid var(--line)}
+.step:first-child{border-top:none}
+.step-i{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3);
+  padding-top:1px;
+}
+.step-h{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px}
+.step-k{font-weight:700; font-size:13.5px}
+.step-k.g{color:var(--gold)}
+.step-move{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-2)}
+.step-c{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); margin-left:auto}
+.step-got{margin-top:6px; font-size:12.5px; color:var(--ink-2); line-height:1.7}
+.step-got .g{color:var(--gold); font-weight:700}
+.step-got .t{color:var(--rose); font-weight:700}
+.step-sum{
+  display:flex; flex-wrap:wrap; gap:6px 20px; padding:12px 15px;
+  background:var(--surface-2); border-top:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+}
+.step-sum b{font-weight:600}
+
+/* ---------- ladder ---------- */
+.legend{
+  display:flex; flex-wrap:wrap; gap:6px 14px; margin-bottom:12px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3);
+}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; border:1px solid var(--line-strong)}
+.ladder{border-top:1px solid var(--line)}
+.hrow{
+  display:grid; grid-template-columns:1fr 46px 1fr; gap:0;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-3); padding:8px 0;
+  position:sticky; top:env(safe-area-inset-top,0px); background:var(--bg); z-index:5;
+  border-bottom:1px solid var(--line);
+}
+.hrow span:first-child{color:var(--trackA); padding-left:11px}
+.hrow span:last-child{color:var(--trackB); text-align:right; padding-right:11px}
+.hrow span:nth-child(2){text-align:center; letter-spacing:.06em}
+.row{display:grid; grid-template-columns:1fr 46px 1fr; align-items:stretch}
+.rail{
+  display:flex; align-items:center; justify-content:center;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3);
+  border-inline:1px solid var(--line); background:var(--surface-2);
+}
+.cell{
+  all:unset; cursor:pointer; display:block; padding:7px 11px;
+  border-bottom:1px solid var(--line); min-height:44px;
+  transition:background .1s;
+}
+.cell:focus-visible{outline:2px solid var(--trackA); outline-offset:-2px}
+.cell.b{text-align:right}
+.cell:hover{background:var(--surface-3)}
+.c-res{font-size:13px; font-weight:500; line-height:1.35}
+.c-res.uber{color:var(--gold); font-weight:700}
+.c-res.uber.tgt{color:var(--rose)}
+.c-guar{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-3);
+  margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.c-guar b{color:var(--gold); font-weight:600}
+.c-guar b.t{color:var(--rose)}
+
+/* route states */
+.cell.st-single{background:var(--surface-3)}
+.cell.st-guar{background:var(--gold-soft)}
+.cell.st-gstart{box-shadow:inset 3px 0 0 var(--gold)}
+.cell.b.st-gstart{box-shadow:inset -3px 0 0 var(--gold)}
+.cell.st-land{box-shadow:inset 3px 0 0 var(--trackA)}
+.cell.b.st-land{box-shadow:inset -3px 0 0 var(--trackB)}
+.cell.st-start{box-shadow:inset 3px 0 0 var(--rose)}
+.cell.b.st-start{box-shadow:inset -3px 0 0 var(--rose)}
+.row.has-route .rail{background:var(--surface-3); color:var(--ink-2)}
+.tag{
+  display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:9.5px;
+  letter-spacing:.06em; padding:1px 5px; border-radius:2px; margin-top:4px;
+  background:var(--ink); color:var(--bg);
+}
+.tag.gold{background:var(--gold); color:var(--surface)}
+.tag.rose{background:var(--rose); color:var(--surface)}
+
+/* inline detail */
+.detail{
+  grid-column:1 / -1; background:var(--surface); border-bottom:1px solid var(--line);
+  padding:14px 15px; box-shadow:var(--shadow);
+}
+.d-top{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; margin-bottom:10px}
+.d-pos{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:16px}
+.d-note{font-size:12.5px; color:var(--ink-2)}
+.d-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line)}
+.d-cell{background:var(--surface); padding:6px 9px}
+.d-cell .i{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3)}
+.d-cell .n{font-size:12.5px; line-height:1.3}
+.d-cell.last{background:var(--gold-soft)}
+.d-cell.last .n{color:var(--gold); font-weight:700}
+.d-cell.last.tgt{background:var(--rose-soft)}
+.d-cell.last.tgt .n{color:var(--rose)}
+.d-cell .n.uber{color:var(--gold); font-weight:700}
+.d-cell .n.uber.tgt{color:var(--rose)}
+
+/* ---------- mechanics ---------- */
+.mech{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line)}
+.mech div{background:var(--surface); padding:14px 15px}
+.mech h3{font-size:13px; font-weight:700; margin-bottom:6px}
+.mech p{margin:0; font-size:13px; color:var(--ink-2); line-height:1.6}
+.mech code{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink); background:var(--surface-2); padding:1px 4px; border-radius:2px}
+footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-3); line-height:1.7}
+
+@media (max-width:520px){
+  .row,.hrow{grid-template-columns:1fr 34px 1fr}
+  .cell{padding:6px 8px; min-height:42px}
+  .c-res{font-size:12px}
+  .c-guar{font-size:9.5px}
+  .hrow span:first-child{padding-left:8px}
+  .hrow span:last-child{padding-right:8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">貓咪大戰爭 · Fate/stay night 合作轉蛋</div>
+    <h1>抽軌路徑圖</h1>
+    <p class="sub">這條軌道是固定的：從哪一格開抽、用單抽還是必中11連，決定了你會拿到誰。點任一格看那一發必中會吐出哪 11 隻、跳到哪；選上方路線看完整走法。</p>
+    <div class="meta">
+      <span><b>seed</b> 2593032074</span>
+      <span><b>活動</b> 2026-09-28_1081</span>
+      <span><b>目前位置</b> <span id="startPos">4A</span></span>
+      <span><b>單抽</b> 150 罐頭</span>
+      <span><b>必中11連</b> 1500 罐頭</span>
+    </div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head"><h2>路線</h2><span class="hint">全部從 4A 出發，目標 Saber ＋ 間桐櫻</span></div>
+    <div class="routes" id="routes"></div>
+    <div class="steps" id="steps"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>軌道</h2><span class="hint">點格子展開那一發必中的內容</span></div>
+    <div class="legend">
+      <span><i style="background:var(--surface-3)"></i>路線經過（單抽）</span>
+      <span><i style="background:var(--gold-soft)"></i>路線經過（必中11連）</span>
+      <span><i style="background:var(--gold)"></i>超激レア</span>
+      <span><i style="background:var(--rose)"></i>你的目標</span>
+    </div>
+    <div class="ladder" id="ladder">
+      <div class="hrow"><span>A 軌</span><span>行</span><span>B 軌</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>機制</h2><span class="hint">為什麼跳轉是這些數字</span></div>
+    <div class="mech">
+      <div><h3>格子流模型</h3><p>把亂數想成一條連續的格子流。A 軌第 N 行佔格子 <code>2N-1, 2N</code>；B 軌第 N 行佔 <code>2N, 2N+1</code>。兩軌交錯，差一格。</p></div>
+      <div><h3>單抽吃 2 格</h3><p>位置往下一行，軌道不變：<code>NA → (N+1)A</code>、<code>NB → (N+1)B</code>。</p></div>
+      <div><h3>必中11連吃 21 格</h3><p>10 抽各 2 格，保底那一抽多吃 1 格。所以 <code>NA → (N+10)B</code>、<code>NB → (N+11)A</code> — 軌道必定翻面。</p></div>
+      <div><h3>51B–59B / 84B–89B 例外</h3><p>這些 11 連中途踩到連續同貓觸發重抽，又多吃 1 格，把軌道推回原位，所以落點仍在 B 軌。</p></div>
+    </div>
+  </section>
+
+  <footer>
+    資料來源：godfat 抽蛋模擬器（seed 2593032074、活動 2026-09-28_1081）。B 欄索引已針對純文字複製時的錯行修正。<br>
+    60B、93B、97B 標有重抽換軌記號，上列路線皆未經過這三格。
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const C = DATA.cells, TGT = new Set(DATA.targets), UB = new Set(DATA.ubers);
+let activeRoute = 0, openCell = null;
+
+const isT = n => TGT.has(n);
+const isU = n => UB.has(n);
+const catClass = n => isU(n) ? (isT(n) ? 'uber tgt' : 'uber') : '';
+
+/* ---- route cards ---- */
+const routesEl = document.getElementById('routes');
+DATA.routes.forEach((r, i) => {
+  const b = document.createElement('button');
+  b.className = 'route'; b.type = 'button'; b.id = 'route-' + i;
+  b.setAttribute('aria-pressed', String(i === 0));
+  const seen = [];
+  r.ubers.forEach(u => { if (!seen.includes(u)) seen.push(u); });
+  b.innerHTML =
+    '<div class="rtop"><span class="rname">' + r.name + '</span>' +
+    '<span class="rcost">' + r.cost.toLocaleString() + '</span></div>' +
+    '<div class="rmeta">罐頭 · ' + r.draws + ' 抽 · 終點 ' + r.end + '</div>' +
+    '<div class="rblurb">' + r.blurb + '</div>' +
+    '<div class="rubers">' + seen.map(u =>
+      '<span class="ub' + (isT(u) ? ' tgt' : '') + '">' + u + '</span>').join('') + '</div>';
+  b.addEventListener('click', () => selectRoute(i));
+  routesEl.appendChild(b);
+});
+
+/* ---- ladder ---- */
+const ladder = document.getElementById('ladder');
+const rowEls = {};
+for (let n = 1; n <= 100; n++) {
+  const row = document.createElement('div');
+  row.className = 'row'; row.dataset.n = n;
+  row.appendChild(mkCell(n, 'A'));
+  const rail = document.createElement('div');
+  rail.className = 'rail'; rail.textContent = n;
+  row.appendChild(rail);
+  row.appendChild(mkCell(n, 'B'));
+  ladder.appendChild(row);
+  rowEls[n] = row;
+}
+
+function mkCell(n, t) {
+  const key = n + t, c = C[key];
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'cell' + (t === 'B' ? ' b' : '');
+  el.id = 'cell-' + key;
+  el.dataset.key = key;
+  el.setAttribute('aria-expanded', 'false');
+  let h = '<div class="c-res ' + catClass(c.res) + '">' + c.res + '</div>';
+  if (c.guar) {
+    h += '<div class="c-guar">保底 <b class="' + (isT(c.guar) ? 't' : '') + '">' +
+      c.short + '</b> → ' + c.dest + '</div>';
+  } else {
+    h += '<div class="c-guar">—</div>';
+  }
+  el.innerHTML = h;
+  el.addEventListener('click', () => toggleCell(key));
+  return el;
+}
+
+/* ---- cell detail ---- */
+function toggleCell(key) {
+  const prev = openCell;
+  closeDetail();
+  if (prev === key) return;
+  const c = C[key];
+  if (!c.run) { flashNote(key); return; }
+  const row = rowEls[c.n];
+  const d = document.createElement('div');
+  d.className = 'detail'; d.id = 'detail-open';
+  d.innerHTML =
+    '<div class="d-top"><span class="d-pos">' + key + ' 必中11連</span>' +
+    '<span class="d-note">1500 罐頭 · 11 抽 · 抽完跳到 <b>' + c.dest + '</b></span></div>' +
+    '<div class="d-grid">' + c.run.map((name, i) => {
+      const last = i === 10;
+      return '<div class="d-cell' + (last ? ' last' + (isT(name) ? ' tgt' : '') : '') + '">' +
+        '<div class="i">' + (last ? '保底' : (c.n + i) + c.t) + '</div>' +
+        '<div class="n ' + (last ? '' : catClass(name)) + '">' + name + '</div></div>';
+    }).join('') + '</div>';
+  row.insertAdjacentElement('afterend', d);
+  document.getElementById('cell-' + key).setAttribute('aria-expanded', 'true');
+  openCell = key;
+}
+function closeDetail() {
+  const d = document.getElementById('detail-open');
+  if (d) d.remove();
+  if (openCell) {
+    const b = document.getElementById('cell-' + openCell);
+    if (b) b.setAttribute('aria-expanded', 'false');
+  }
+  openCell = null;
+}
+function flashNote(key) {
+  const c = C[key], row = rowEls[c.n];
+  const d = document.createElement('div');
+  d.className = 'detail'; d.id = 'detail-open';
+  d.innerHTML = '<div class="d-top"><span class="d-pos">' + key + '</span>' +
+    '<span class="d-note">這一格沒有必中資料——11 連會走到第 100 行之後，超出表格範圍。</span></div>';
+  row.insertAdjacentElement('afterend', d);
+  openCell = key;
+}
+
+/* ---- route highlight ---- */
+function selectRoute(i) {
+  activeRoute = i;
+  closeDetail();
+  DATA.routes.forEach((_, j) => {
+    document.getElementById('route-' + j).setAttribute('aria-pressed', String(i === j));
+  });
+  document.querySelectorAll('.cell').forEach(el => {
+    el.className = 'cell' + (el.dataset.key.endsWith('B') ? ' b' : '');
+    const tag = el.querySelector('.tag'); if (tag) tag.remove();
+  });
+  document.querySelectorAll('.row').forEach(el => el.classList.remove('has-route'));
+
+  const r = DATA.routes[i];
+  r.steps.forEach(s => {
+    s.cells.forEach(k => {
+      const el = document.getElementById('cell-' + k);
+      el.classList.add(s.kind === 'g' ? 'st-guar' : 'st-single');
+      rowEls[C[k].n].classList.add('has-route');
+    });
+    if (s.kind === 'g') {
+      const el = document.getElementById('cell-' + s.from);
+      el.classList.add('st-gstart');
+      addTag(el, '必中 → ' + s.to, 'gold');
+    }
+  });
+  const endEl = document.getElementById('cell-' + r.end);
+  if (endEl) { endEl.classList.add('st-land'); addTag(endEl, '終點 ' + r.end, ''); }
+  const startEl = document.getElementById('cell-' + DATA.start);
+  if (startEl) { startEl.classList.add('st-start'); addTag(startEl, '起點', 'rose'); }
+
+  renderSteps(r);
+}
+function addTag(el, text, kind) {
+  const t = document.createElement('span');
+  t.className = 'tag' + (kind ? ' ' + kind : '');
+  t.textContent = text;
+  el.appendChild(t);
+}
+
+function renderSteps(r) {
+  const seen = [];
+  r.ubers.forEach(u => { if (!seen.includes(u)) seen.push(u); });
+  document.getElementById('steps').innerHTML =
+    r.steps.map((s, i) =>
+      '<div class="step"><div class="step-i">' + (i + 1) + '</div><div>' +
+      '<div class="step-h"><span class="step-k' + (s.kind === 'g' ? ' g' : '') + '">' +
+      (s.kind === 'g' ? '必中11連' : '單抽 ×' + s.count) + '</span>' +
+      '<span class="step-move">' + s.from + ' → ' + s.to + '</span>' +
+      '<span class="step-c">' + s.cost.toLocaleString() + ' 罐頭</span></div>' +
+      '<div class="step-got">' + s.got.map((n, j) => {
+        const cls = isU(n) ? (isT(n) ? 't' : 'g') : '';
+        const star = (s.kind === 'g' && j === 10) ? '★ ' : '';
+        return cls ? '<span class="' + cls + '">' + star + n + '</span>' : n;
+      }).join('、') + '</div></div></div>').join('') +
+    '<div class="step-sum"><span><b>合計</b> ' + r.cost.toLocaleString() + ' 罐頭</span>' +
+    '<span><b>抽數</b> ' + r.draws + '</span>' +
+    '<span><b>超激レア</b> ' + seen.length + ' 隻（' + seen.join('、') + '）</span>' +
+    '<span><b>均攤</b> ' + Math.round(r.cost / seen.length).toLocaleString() + ' 罐頭／隻</span></div>';
+}
+
+document.getElementById('startPos').textContent = DATA.start;
+selectRoute(0);
+</script>
