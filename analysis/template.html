@@ -201,6 +201,38 @@ h1{font-size:clamp(26px,5.4vw,38px); font-weight:800; letter-spacing:-.02em; lin
 .mech code{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink); background:var(--surface-2); padding:1px 4px; border-radius:2px}
 footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-3); line-height:1.7}
 
+
+/* ---------- combo browser ---------- */
+.filters{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px 18px; background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:15px}
+.f label{display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3); margin-bottom:6px}
+.f select,.f input[type=range]{width:100%}
+.f select{font:inherit; font-size:13px; padding:5px 7px; background:var(--surface-2); color:var(--ink); border:1px solid var(--line); border-radius:2px}
+.f output{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums}
+.f.wide{grid-column:1/-1}
+.chips{display:flex; flex-wrap:wrap; gap:5px}
+.chip{all:unset; cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:11px; padding:3px 8px; border-radius:2px; border:1px solid var(--line); color:var(--ink-2); background:var(--surface-2)}
+.chip:focus-visible{outline:2px solid var(--trackA); outline-offset:1px}
+.chip[aria-pressed="true"]{background:var(--gold-soft); color:var(--gold); border-color:var(--gold-line); font-weight:600}
+.chip[disabled]{cursor:default; background:var(--rose-soft); color:var(--rose); border-color:var(--rose-line); font-weight:600; opacity:1}
+.count{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); margin:12px 0 8px}
+.clist{border:1px solid var(--line); border-radius:3px; overflow:hidden; background:var(--surface)}
+.crow{all:unset; cursor:pointer; display:grid; grid-template-columns:78px 46px 62px 1fr; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); width:100%; box-sizing:border-box}
+.crow:first-child{border-top:none}
+.crow:hover{background:var(--surface-2)}
+.crow:focus-visible{outline:2px solid var(--trackA); outline-offset:-2px}
+.crow[aria-pressed="true"]{background:var(--surface-3)}
+.crow .c1,.crow .c2,.crow .c3{font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-variant-numeric:tabular-nums}
+.crow .c1{font-weight:600}
+.crow .c3{color:var(--gold); font-weight:600}
+.crow .c4{display:flex; flex-wrap:wrap; gap:4px}
+.crow .u{font-family:"IBM Plex Mono",monospace; font-size:10.5px; padding:1px 5px; border-radius:2px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink-2)}
+.crow .u.t{background:var(--rose-soft); color:var(--rose); border-color:var(--rose-line); font-weight:600}
+.empty{padding:22px 14px; text-align:center; color:var(--ink-3); font-size:13px}
+@media (max-width:560px){
+  .crow{grid-template-columns:70px 40px 56px; row-gap:6px}
+  .crow .c4{grid-column:1/-1}
+}
+
 @media (max-width:520px){
   .row,.hrow{grid-template-columns:1fr 34px 1fr}
   .cell{padding:6px 8px; min-height:42px}
@@ -243,6 +275,22 @@ footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font
     <div class="ladder" id="ladder">
       <div class="hrow"><span>A 軌</span><span>行</span><span>B 軌</span></div>
     </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>組合瀏覽器</h2><span class="hint">全部經過 48A、在該格取 Saber，且最終持有間桐櫻</span></div>
+    <div class="filters">
+      <div class="f"><label for="fBudget">預算上限 <output id="fBudgetOut"></output></label>
+        <input type="range" id="fBudget" min="6450" max="13350" step="150"></div>
+      <div class="f"><label for="fMin">最少種類</label>
+        <select id="fMin"><option value="2">不限</option><option value="4">4 種以上</option><option value="5">5 種以上</option><option value="6">6 種以上</option><option value="7">7 種以上</option><option value="8">8 種以上</option><option value="9">9 種</option></select></div>
+      <div class="f"><label for="fSort">排序</label>
+        <select id="fSort"><option value="avg">均攤成本（低→高）</option><option value="cost">總罐頭（低→高）</option><option value="n">種類數（多→少）</option></select></div>
+      <div class="f wide"><label>必須包含</label><div class="chips" id="fChips"></div></div>
+    </div>
+    <div class="count" id="cCount"></div>
+    <div class="clist" id="cList"></div>
+    <div class="steps" id="cSteps"></div>
   </section>
 
   <section class="sec">
@@ -369,17 +417,22 @@ function flashNote(key) {
 /* ---- route highlight ---- */
 function selectRoute(i) {
   activeRoute = i;
-  closeDetail();
   DATA.routes.forEach((_, j) => {
     document.getElementById('route-' + j).setAttribute('aria-pressed', String(i === j));
   });
+  document.querySelectorAll('.crow').forEach(el => el.setAttribute('aria-pressed', 'false'));
+  document.getElementById('cSteps').innerHTML = '';
+  applyRoute(DATA.routes[i], document.getElementById('steps'));
+}
+
+function applyRoute(r, stepsEl) {
+  closeDetail();
   document.querySelectorAll('.cell').forEach(el => {
     el.className = 'cell' + (el.dataset.key.endsWith('B') ? ' b' : '');
     const tag = el.querySelector('.tag'); if (tag) tag.remove();
   });
   document.querySelectorAll('.row').forEach(el => el.classList.remove('has-route'));
 
-  const r = DATA.routes[i];
   r.steps.forEach(s => {
     s.cells.forEach(k => {
       const el = document.getElementById('cell-' + k);
@@ -397,7 +450,7 @@ function selectRoute(i) {
   const startEl = document.getElementById('cell-' + DATA.start);
   if (startEl) { startEl.classList.add('st-start'); addTag(startEl, '起點', 'rose'); }
 
-  renderSteps(r);
+  renderSteps(r, stepsEl);
 }
 function addTag(el, text, kind) {
   const t = document.createElement('span');
@@ -406,21 +459,26 @@ function addTag(el, text, kind) {
   el.appendChild(t);
 }
 
-function renderSteps(r) {
+function renderSteps(r, stepsEl) {
   const seen = [];
   r.ubers.forEach(u => { if (!seen.includes(u)) seen.push(u); });
-  document.getElementById('steps').innerHTML =
+  stepsEl.innerHTML =
     r.steps.map((s, i) =>
       '<div class="step"><div class="step-i">' + (i + 1) + '</div><div>' +
       '<div class="step-h"><span class="step-k' + (s.kind === 'g' ? ' g' : '') + '">' +
       (s.kind === 'g' ? '必中11連' : '單抽 ×' + s.count) + '</span>' +
       '<span class="step-move">' + s.from + ' → ' + s.to + '</span>' +
       '<span class="step-c">' + s.cost.toLocaleString() + ' 罐頭</span></div>' +
-      '<div class="step-got">' + s.got.map((n, j) => {
-        const cls = isU(n) ? (isT(n) ? 't' : 'g') : '';
-        const star = (s.kind === 'g' && j === 10) ? '★ ' : '';
-        return cls ? '<span class="' + cls + '">' + star + n + '</span>' : n;
-      }).join('、') + '</div></div></div>').join('') +
+      '<div class="step-got">' + (s.got
+        ? s.got.map((n, j) => {
+            const cls = isU(n) ? (isT(n) ? 't' : 'g') : '';
+            const star = (s.kind === 'g' && j === 10) ? '★ ' : '';
+            return cls ? '<span class="' + cls + '">' + star + n + '</span>' : n;
+          }).join('、')
+        : (s.ubers && s.ubers.length
+            ? s.ubers.map(n => '<span class="' + (isT(n) ? 't' : 'g') + '">★ ' + n + '</span>').join('、')
+            : '（無超激レア；點軌道上的格子看逐隻內容）')) +
+      '</div></div></div>').join('') +
     '<div class="step-sum"><span><b>合計</b> ' + r.cost.toLocaleString() + ' 罐頭</span>' +
     '<span><b>抽數</b> ' + r.draws + '</span>' +
     '<span><b>超激レア</b> ' + seen.length + ' 隻（' + seen.join('、') + '）</span>' +
@@ -429,4 +487,81 @@ function renderSteps(r) {
 
 document.getElementById('startPos').textContent = DATA.start;
 selectRoute(0);
+
+/* ---- combo browser ---- */
+const CB = DATA.combos, chipState = {};
+const fBudget = document.getElementById('fBudget'),
+      fBudgetOut = document.getElementById('fBudgetOut'),
+      fMin = document.getElementById('fMin'),
+      fSort = document.getElementById('fSort'),
+      fChips = document.getElementById('fChips'),
+      cList = document.getElementById('cList'),
+      cCount = document.getElementById('cCount'),
+      cSteps = document.getElementById('cSteps');
+
+const costs = CB.map(c => c.cost);
+fBudget.min = Math.min.apply(null, costs);
+fBudget.max = Math.max.apply(null, costs);
+fBudget.value = fBudget.max;
+
+DATA.ubers.forEach(u => {
+  const b = document.createElement('button');
+  b.className = 'chip'; b.type = 'button'; b.textContent = u;
+  if (isT(u)) { b.disabled = true; b.setAttribute('aria-pressed', 'true'); }
+  else {
+    chipState[u] = false;
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      chipState[u] = !chipState[u];
+      b.setAttribute('aria-pressed', String(chipState[u]));
+      renderCombos();
+    });
+  }
+  fChips.appendChild(b);
+});
+
+function renderCombos() {
+  const budget = +fBudget.value, minN = +fMin.value, sort = fSort.value;
+  fBudgetOut.textContent = budget.toLocaleString() + ' 罐頭';
+  const need = Object.keys(chipState).filter(u => chipState[u]);
+  let rows = CB.filter(c =>
+    c.cost <= budget && c.n >= minN && need.every(u => c.ubers.includes(u)));
+  rows.sort(sort === 'avg' ? (a, b) => a.avg - b.avg || a.cost - b.cost
+          : sort === 'cost' ? (a, b) => a.cost - b.cost || a.avg - b.avg
+          : (a, b) => b.n - a.n || a.avg - b.avg);
+  cCount.textContent = '符合 ' + rows.length + ' / ' + CB.length + ' 組' +
+    (rows.length ? '　·　最低均攤 ' + Math.min.apply(null, rows.map(r => r.avg)).toLocaleString() + ' 罐頭／隻' : '');
+  if (!rows.length) {
+    cList.innerHTML = '<div class="empty">沒有組合符合這些條件。放寬預算，或取消幾個「必須包含」。</div>';
+    cSteps.innerHTML = '';
+    return;
+  }
+  cList.innerHTML = rows.slice(0, 60).map(c =>
+    '<button type="button" class="crow" aria-pressed="false" data-k="' + c.ubers.join('|') + '">' +
+    '<span class="c1">' + c.cost.toLocaleString() + '</span>' +
+    '<span class="c2">' + c.n + ' 種</span>' +
+    '<span class="c3">' + c.avg.toLocaleString() + '</span>' +
+    '<span class="c4">' + c.ubers.map(u =>
+      '<span class="u' + (isT(u) ? ' t' : '') + '">' + u + '</span>').join('') +
+    '</span></button>').join('') +
+    (rows.length > 60 ? '<div class="empty">另有 ' + (rows.length - 60) + ' 組未顯示——縮小預算或加上「必須包含」來收斂。</div>' : '');
+  [...cList.querySelectorAll('.crow')].forEach((el, i) => {
+    el.addEventListener('click', () => {
+      cList.querySelectorAll('.crow').forEach(x => x.setAttribute('aria-pressed', 'false'));
+      el.setAttribute('aria-pressed', 'true');
+      document.querySelectorAll('.route').forEach(x => x.setAttribute('aria-pressed', 'false'));
+      document.getElementById('steps').innerHTML = '';
+      const c = rows[i];
+      applyRoute({ name: '', ubers: c.ubers, cost: c.cost, draws: c.draws,
+                   steps: c.steps, end: c.end }, cSteps);
+      cSteps.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+  cSteps.innerHTML = '';
+}
+fBudget.addEventListener('input', renderCombos);
+fMin.addEventListener('change', renderCombos);
+fSort.addEventListener('change', renderCombos);
+renderCombos();
+
 </script>

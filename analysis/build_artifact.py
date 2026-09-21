@@ -70,6 +70,13 @@ DATA = {"cells": cells(), "routes": ROUTES, "targets": sorted(TARGETS),
         "ubers": sorted(UBERS), "start": "4A",
         "costSingle": COST_SINGLE, "costGuar": COST_GUARANTEED}
 
+import combo_data
+_combos = combo_data.build()
+for _c in _combos:                       # 瘦身: 逐格內容改由點軌道查看
+    for _s in _c["steps"]:
+        _s.pop("got", None)
+DATA["combos"] = _combos
+
 html = open(os.path.join(os.path.dirname(__file__), "template.html"), encoding="utf-8").read()
 html = html.replace("/*__DATA__*/null", json.dumps(DATA, ensure_ascii=False))
 out = os.path.join(os.path.dirname(__file__), "..", "artifact", "gacha_track.html")
