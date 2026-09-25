@@ -2,7 +2,7 @@
 """從 track_data 產生互動式抽軌路徑圖 (單一 HTML)。"""
 import json, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "data"))
-from track_data import A, B, TRACK, UBERS, COST_SINGLE, COST_GUARANTEED
+from track_data_now import A, B, TRACK, UBERS, COST_SINGLE, COST_GUARANTEED
 
 SHORT = {"Gilgamesh": "Gil", "衛宮士郎": "士郎", "遠坂凜": "凜",
          "間桐櫻": "櫻", "伊莉雅蘇菲爾": "伊莉雅", "真Assassin": "Assassin"}
@@ -50,19 +50,42 @@ def route(name, blurb, steps):
             "ubers": ubers, "steps": detail,
             "end": detail[-1]["to"], "start": steps[0][1]}
 
-ROUTES = [
-    route("五隻超激レア", "39A 一發吃 Saber＋間桐櫻，51B 再吃士郎＋Gilgamesh，最後 62B 單抽撿 Lancer。均攤 810，現階段最佳",
-          [("s", "35A", 4), ("g", "39A"), ("s", "49B", 2), ("g", "51B"), ("s", "62B", 1)]),
-    route("四隻超激レア", "兩發必中連打，不插單抽。均攤 900，抽數最少的高效方案",
-          [("s", "35A", 4), ("g", "39A"), ("g", "49B")]),
-    route("最短收尾", "只補完 Saber 和間桐櫻。四隻目標全拿的總支出剛好落在聯合最佳解 6600",
-          [("s", "35A", 4), ("g", "39A")]),
-    route("三隻超激レア", "改走 43A 那一發，抽完在 53B 單抽撿衛宮士郎",
-          [("s", "35A", 8), ("g", "43A"), ("s", "53B", 1)]),
-]
+import combos_from
+_combos = combos_from.build(TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, 11,
+                            "1A", ["Saber", "間桐櫻"])
+for _c in _combos:
+    for _s in _c["steps"]:
+        _s.pop("got", None)
+
+BLURB = {
+    2: "只補完 Saber 和間桐櫻。5A 那一發的保底是間桐櫻，涵蓋的第 10 格 14A 結果欄正是 Saber",
+    3: "改走 9A 那一發，抽完在 19B 單抽撿衛宮士郎",
+    4: "兩發必中連打不插單抽，15B 那發同時吃到 19B 的衛宮士郎和保底的 Archer",
+    5: "17B 那發吃衛宮士郎＋Gilgamesh，最後在 28B 花 150 撿 Lancer。均攤最低",
+    6: "再往下多打一發必中",
+    7: "高預算區", 8: "高預算區", 9: "高預算區",
+}
+
+_by_n = {}
+for _c in _combos:
+    if _c["n"] not in _by_n or _by_n[_c["n"]]["cost"] > _c["cost"]:
+        _by_n[_c["n"]] = _c
+_best_avg = min(_combos, key=lambda c: (c["avg"], c["cost"]))
+
+ROUTES = []
+for _n in sorted(_by_n):
+    if _n > 6:
+        continue
+    _c = dict(_by_n[_n])
+    _c["name"] = f"{_n} 隻超激レア"
+    _c["blurb"] = BLURB.get(_n, "")
+    if _c["cost"] == _best_avg["cost"] and _c["n"] == _best_avg["n"]:
+        _c["blurb"] += "　← 全表最佳均攤"
+    ROUTES.append(_c)
+ROUTES.sort(key=lambda r: (r["avg"], r["cost"]))
 
 DATA = {"cells": cells(), "routes": ROUTES, "targets": sorted(TARGETS),
-        "ubers": sorted(UBERS), "start": "35A",
+        "ubers": sorted(UBERS), "start": "1A",
         "costSingle": COST_SINGLE, "costGuar": COST_GUARANTEED}
 
 import combos_from

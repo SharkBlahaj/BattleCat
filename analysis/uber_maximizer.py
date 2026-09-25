@@ -10,7 +10,7 @@ from track_data import TRACK, UBERS, COST_SINGLE, COST_GUARANTEED
 
 UL = sorted(UBERS)
 BIT = {u: 1 << i for i, u in enumerate(UL)}
-SUSPECT = {("B", 60), ("B", 93), ("B", 97)}
+SUSPECT = {("B", 26), ("B", 60), ("B", 64)}  # godfat 標記的重抽換軌點（目前視圖）
 
 
 def mask_of(cats):
