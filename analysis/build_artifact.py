@@ -51,38 +51,57 @@ def route(name, blurb, steps):
             "end": detail[-1]["to"], "start": steps[0][1]}
 
 import combos_from
+from solver import Solver
+
+_CORE = ["Saber", "間桐櫻"]
 _combos = combos_from.build(TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, 11,
-                            "1A", ["Saber", "間桐櫻"])
+                            "1A", _CORE)
 for _c in _combos:
     for _s in _c["steps"]:
         _s.pop("got", None)
 
-BLURB = {
-    2: "只補完 Saber 和間桐櫻。5A 那一發的保底是間桐櫻，涵蓋的第 10 格 14A 結果欄正是 Saber",
-    3: "改走 9A 那一發，抽完在 19B 單抽撿衛宮士郎",
-    4: "兩發必中連打不插單抽，15B 那發同時吃到 19B 的衛宮士郎和保底的 Archer",
-    5: "17B 那發吃衛宮士郎＋Gilgamesh，最後在 28B 花 150 撿 Lancer。均攤最低",
-    6: "再往下多打一發必中",
-    7: "高預算區", 8: "高預算區", 9: "高預算區",
-}
+# 指定目標組 → 取最省路線
+_SPECS = [
+    ("最短收尾", _CORE,
+     "只補完兩隻必收。5A 那一發保底是間桐櫻，涵蓋的第 10 格 14A 結果欄正是 Saber"),
+    ("＋遠坂凜", _CORE + ["遠坂凜"],
+     "只多插一次單抽改打 16B，凜和衛宮士郎一起進袋。加碼 1650 換兩隻，均攤最低"),
+    ("四隻目標全收", _CORE + ["遠坂凜", "真Assassin"],
+     "在上一條後面再走一格打 28A 收真Assassin。四隻想要的全到齊，還附送衛宮士郎"),
+    ("最佳均攤", _CORE + ["Gilgamesh", "Lancer"],
+     "不收凜和真Assassin，改走 17B／28B 那條線。均攤 810 是全表最低，但拿不到你點名的兩隻"),
+    ("全十隻", sorted(UBERS),
+     "本活動十隻超激レア一網打盡，不留遺憾"),
+]
 
-_by_n = {}
-for _c in _combos:
-    if _c["n"] not in _by_n or _by_n[_c["n"]]["cost"] > _c["cost"]:
-        _by_n[_c["n"]] = _c
-_best_avg = min(_combos, key=lambda c: (c["avg"], c["cost"]))
+
+def _by_targets(targets):
+    s = Solver(TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, 11)
+    s.search("1A")
+    r = s.cheapest_for(targets)
+    if not r:
+        return None
+    cost, pos, mask = r
+    steps = combos_from.merge_singles(s.trace((pos, mask)))
+    assert sum(x["cost"] for x in steps) == cost
+    u = s.names(mask)
+    return {"cost": cost, "n": len(u), "avg": round(cost / len(u)), "ubers": u,
+            "end": pos,
+            "draws": sum(len(x["cells"]) if "單抽" in x["label"] else 11 for x in steps),
+            "steps": [{"kind": "g" if x["label"].startswith("必中") else "s",
+                       "from": x["from"], "to": x["to"], "cost": x["cost"],
+                       "count": 11 if x["label"].startswith("必中") else len(x["cells"]),
+                       "cells": x["cells"], "ubers": x["ubers"]} for x in steps]}
+
 
 ROUTES = []
-for _n in sorted(_by_n):
-    if _n > 6:
+for _name, _tg, _blurb in _SPECS:
+    _r = _by_targets(_tg)
+    if not _r:
         continue
-    _c = dict(_by_n[_n])
-    _c["name"] = f"{_n} 隻超激レア"
-    _c["blurb"] = BLURB.get(_n, "")
-    if _c["cost"] == _best_avg["cost"] and _c["n"] == _best_avg["n"]:
-        _c["blurb"] += "　← 全表最佳均攤"
-    ROUTES.append(_c)
-ROUTES.sort(key=lambda r: (r["avg"], r["cost"]))
+    _r["name"] = _name
+    _r["blurb"] = _blurb
+    ROUTES.append(_r)
 
 DATA = {"cells": cells(), "routes": ROUTES, "targets": sorted(TARGETS),
         "ubers": sorted(UBERS), "start": "1A",
