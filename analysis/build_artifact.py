@@ -51,27 +51,23 @@ def route(name, blurb, steps):
             "end": detail[-1]["to"], "start": steps[0][1]}
 
 ROUTES = [
-    route("五隻超激レア", "用必中11連當前進工具，跳轉鏈剛好落在 48A — 那一格結果欄就是 Saber，150 罐頭單抽即可",
-          [("s", "4A", 2), ("g", "6A"), ("g", "16B"), ("g", "27A"), ("g", "37B"), ("s", "48A", 1)]),
-    route("七隻超激レア", "再走兩步到 50A，那一發同時吃到 Archer（結果欄）和 Lancer（保底）。全表均攤最低點",
-          [("s", "4A", 2), ("g", "6A"), ("g", "16B"), ("g", "27A"), ("g", "37B"),
-           ("s", "48A", 2), ("g", "50A")]),
-    route("48A 打必中", "在 48A 打滿必中。保底會再送一隻間桐櫻，但你第 3 步就拿過了 — 多花 1350 換重複",
-          [("g", "4A"), ("g", "14B"), ("s", "25A", 2), ("g", "27A"), ("g", "37B"), ("g", "48A")]),
-    route("三隻超激レア", "在 B 軌插一發必中換軌，走 37A 拿 Saber。比五隻方案只少花 150 罐頭",
-          [("s", "4A", 2), ("g", "6A"), ("s", "16B", 10), ("g", "26B"), ("g", "37A")]),
-    route("最省罐頭", "只要 Saber 和間桐櫻兩隻，這是絕對下限 — 但均攤是全場最差的 2700",
-          [("s", "4A", 6), ("g", "10A"), ("s", "20B", 10), ("g", "30B")]),
-    route("只要間桐櫻", "預算有限時的最短路徑，兩步就位",
-          [("s", "4A", 2), ("g", "6A")]),
+    route("五隻超激レア", "39A 一發吃 Saber＋間桐櫻，51B 再吃士郎＋Gilgamesh，最後 62B 單抽撿 Lancer。均攤 810，現階段最佳",
+          [("s", "35A", 4), ("g", "39A"), ("s", "49B", 2), ("g", "51B"), ("s", "62B", 1)]),
+    route("四隻超激レア", "兩發必中連打，不插單抽。均攤 900，抽數最少的高效方案",
+          [("s", "35A", 4), ("g", "39A"), ("g", "49B")]),
+    route("最短收尾", "只補完 Saber 和間桐櫻。四隻目標全拿的總支出剛好落在聯合最佳解 6600",
+          [("s", "35A", 4), ("g", "39A")]),
+    route("三隻超激レア", "改走 43A 那一發，抽完在 53B 單抽撿衛宮士郎",
+          [("s", "35A", 8), ("g", "43A"), ("s", "53B", 1)]),
 ]
 
 DATA = {"cells": cells(), "routes": ROUTES, "targets": sorted(TARGETS),
-        "ubers": sorted(UBERS), "start": "4A",
+        "ubers": sorted(UBERS), "start": "35A",
         "costSingle": COST_SINGLE, "costGuar": COST_GUARANTEED}
 
-import combo_data
-_combos = combo_data.build()
+import combos_from
+_combos = combos_from.build(TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, 11,
+                            "35A", ["Saber", "間桐櫻"])
 for _c in _combos:                       # 瘦身: 逐格內容改由點軌道查看
     for _s in _c["steps"]:
         _s.pop("got", None)
