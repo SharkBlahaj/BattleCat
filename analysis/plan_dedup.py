@@ -24,7 +24,8 @@ def solve(targets, rounds=8, **kw):
         picked = []
         for s in r["steps"]:
             picked += [g for g in s["got"] if g in RP.ALL_UBERS]
-        dups = {g for g in picked if picked.count(g) > 1 and g not in targets}
+        # 目標角色拿到第二隻一樣是浪費，所以不排除 targets
+        dups = {g for g in picked if picked.count(g) > 1}
         if best is None or (len(dups), r["food"]) < best[0]:
             best = ((len(dups), r["food"]), r, set(penal))
         if not dups:
