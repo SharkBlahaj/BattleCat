@@ -116,3 +116,6 @@ COST_SINGLE = 150
 COST_GUARANTEED = 1500
 GUAR_DRAWS = 11
 SUSPECT = {("A", 22), ("A", 26)}   # godfat 標記的重抽換軌點
+
+# 重抽格：在這些格單抽會觸發重抽，改吐這隻並跳到另一軌
+REROLL = {("A",22):("侏羅貓","23B"), ("A",26):("高蹺貓","27B")}
