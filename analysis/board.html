@@ -69,6 +69,21 @@ h1{font-size:clamp(26px,5.4vw,38px); font-weight:800; letter-spacing:-.02em; lin
 .chip.got{background:var(--jade-soft); color:var(--jade); border-color:var(--jade-line); font-weight:600}
 .chip.leg{background:var(--violet-soft); color:var(--violet); border-color:var(--violet-line); font-weight:600}
 
+/* plan picker */
+.plans{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px}
+.pcard{all:unset; cursor:pointer; display:block; background:var(--surface);
+  border:1px solid var(--line); padding:14px 15px; transition:border-color .12s}
+.pcard:hover{border-color:var(--line-strong)}
+.pcard:focus-visible{outline:2px solid var(--trackA); outline-offset:2px}
+.pcard[aria-pressed="true"]{border-color:var(--ink); background:var(--surface)}
+.pcard[aria-pressed="true"] .pn{color:var(--ink)}
+.ptop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.pn{font-family:"Archivo","Noto Sans TC",sans-serif; font-weight:700; font-size:14.5px}
+.pf{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:17px}
+.pm{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); margin-top:3px}
+.pb{font-size:12.5px; color:var(--ink-2); margin-top:9px; line-height:1.5}
+.ph{display:flex; flex-wrap:wrap; gap:4px; margin-top:10px}
+
 /* route */
 .route{border:1px solid var(--line); background:var(--surface)}
 .step{display:grid; grid-template-columns:30px 1fr; gap:12px; padding:13px 15px; border-top:1px solid var(--line)}
@@ -161,6 +176,11 @@ footer{margin-top:44px; padding-top:18px; border-top:1px solid var(--line); font
   </section>
 
   <section class="sec">
+    <div class="sec-head"><h2>方案</h2><span class="hint">點卡片切換，下方路線與軌道圖會跟著變</span></div>
+    <div class="plans" id="plans"></div>
+  </section>
+
+  <section class="sec">
     <div class="sec-head"><h2>路線</h2><span class="hint">金色 = 必中連抽，底下列出三個活動的選項</span></div>
     <div class="route" id="route"></div>
   </section>
@@ -198,8 +218,14 @@ const D = /*__DATA__*/null;
 const T = D.tracks, OWN = new Set(D.owned), TGT = new Set(D.targets);
 const TOP = new Set(D.top), UB = new Set(D.allUbers), LEG = new Set(D.legendOnly);
 const GACHA = ["Fate","活動3","活動4"], SOURCES = [...GACHA,"白金卷","黑金卷"];
-const got = new Set();
-D.plan.merged.forEach(s => s.got.forEach(g => { if (!OWN.has(g)) got.add(g); }));
+let cur = 0;
+let got = new Set();
+function recomputeGot(p){
+  got = new Set();
+  p.merged.forEach(s => s.got.forEach(g => {
+    if (!OWN.has(g) && (UB.has(g) || TGT.has(g) || LEG.has(g))) got.add(g);
+  }));
+}
 
 function cls(n){
   if (TGT.has(n) && !OWN.has(n)) return 'tgt';
@@ -214,7 +240,7 @@ function chips(list){
 }
 
 /* stats */
-const p = D.plan;
+function renderStats(p){
 document.getElementById('stats').innerHTML = [
   ['目前位置', D.position, ''],
   ['罐頭', p.food.toLocaleString(), '庫存 ' + D.resources['罐頭'].toLocaleString()],
@@ -225,15 +251,18 @@ document.getElementById('stats').innerHTML = [
   ['收穫', got.size + ' 隻', '超激／傳說'],
 ].map(([k,v,n]) => '<div class="stat"><div class="k">' + k + '</div><div class="v">' + v +
   '</div>' + (n ? '<div class="n">' + n + '</div>' : '') + '</div>').join('');
+}
 
 /* rosters */
+function renderRosters(p){
 document.getElementById('rosters').innerHTML =
   '<div style="margin-bottom:12px"><div class="k mono" style="font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">本次目標</div>' +
-  chips(D.targets) + '</div>' +
+  chips(p.targets) + '</div>' +
   '<div style="margin-bottom:12px"><div class="k mono" style="font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">這條路線的收穫</div>' +
   chips([...got]) + '</div>' +
   '<div><div class="k mono" style="font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">已擁有</div>' +
   chips(D.owned) + '</div>';
+}
 
 /* route */
 function guarAt(pos, banner){
@@ -250,6 +279,7 @@ function topsIn(pos, banner, draws){
   }
   return out;
 }
+function renderRoute(p){
 document.getElementById('route').innerHTML = p.merged.map((s,i) => {
   const isG = s.kind === 'g';
   const gains = [...new Set(s.got)].filter(g => (UB.has(g)||TGT.has(g)) && !OWN.has(g));
@@ -289,11 +319,19 @@ document.getElementById('route').innerHTML = p.merged.map((s,i) => {
     '<span class="sc">' + (s.cost? s.cost.toLocaleString()+' 罐頭' : '0 罐頭') + '</span></div>' +
     (gains.length ? '<div class="sg">' + chips(gains) + '</div>' : '') + alt + '</div></div>';
 }).join('');
+}
 
 /* ladder */
-const cover = {};
-p.merged.forEach((s,i) => s.cover.forEach(c => cover[c] = {i, kind:s.kind, banner:s.banner}));
+let cover = {};
 const ladder = document.getElementById('ladder'), rowEls = {};
+function renderLadder(p){
+  cover = {};
+  p.merged.forEach((s,i) => s.cover.forEach(c => cover[c] = {i, kind:s.kind, banner:s.banner}));
+  closeD();
+  [...ladder.querySelectorAll('.row')].forEach(el => el.remove());
+  buildRows();
+}
+function buildRows(){
 for (let n=1;n<=100;n++){
   const row = document.createElement('div'); row.className='row';
   row.appendChild(mk(n,'A'));
@@ -301,6 +339,7 @@ for (let n=1;n<=100;n++){
   row.appendChild(rail);
   row.appendChild(mk(n,'B'));
   ladder.appendChild(row); rowEls[n]=row;
+}
 }
 function mk(n,t){
   const key=n+t, cv=cover[key];
@@ -316,6 +355,30 @@ function mk(n,t){
   el.addEventListener('click', () => toggle(key));
   return el;
 }
+/* plan picker */
+document.getElementById('plans').innerHTML = D.plans.map((p,i) =>
+  '<button type="button" class="pcard" id="p-'+i+'" aria-pressed="'+(i===0)+'">' +
+  '<div class="ptop"><span class="pn">'+p.name+'</span>' +
+  '<span class="pf">'+p.food.toLocaleString()+'</span></div>' +
+  '<div class="pm">罐頭 · 稀有卷 '+p.rare+' · 白金 '+p.plat+' · 黑金 '+p.leg+
+  ' · '+p.pulls+' 發必中</div>' +
+  '<div class="pb">'+p.blurb+'</div>' +
+  '<div class="ph">'+ (p.haul||[]).slice(0,20).map(n =>
+    '<span class="chip '+(TGT.has(n)?'tgt':(LEG.has(n)?'leg':'got'))+'">'+n+'</span>').join('') +
+  '</div></button>').join('');
+D.plans.forEach((_,i) => document.getElementById('p-'+i)
+  .addEventListener('click', () => select(i)));
+
+function select(i){
+  cur = i;
+  D.plans.forEach((_,j) => document.getElementById('p-'+j)
+    .setAttribute('aria-pressed', String(i===j)));
+  const p = D.plans[i];
+  recomputeGot(p);
+  renderStats(p); renderRosters(p); renderRoute(p); renderLadder(p);
+}
+select(0);
+
 let open=null;
 function toggle(key){
   const prev=open; closeD(); if (prev===key) return;

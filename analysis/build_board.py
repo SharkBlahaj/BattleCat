@@ -28,9 +28,8 @@ def tracks():
     return out
 
 
-def build(plan_path):
-    plan = json.load(open(plan_path, encoding="utf-8"))
-    # 展開每一步實際覆蓋的格子與所用池子
+def annotate(plan):
+    """展開每一步實際覆蓋的格子與所用池子"""
     for s in plan["merged"]:
         n, t = int(s["from"][:-1]), s["from"][-1]
         ban = next((b for b in BAN if b in s["label"]), None)
@@ -44,12 +43,23 @@ def build(plan_path):
             cnt = s.get("n", 1)
             s["cover"] = [f"{n+i}{t}" for i in range(cnt)]
             s["kind"] = "s"
+    return plan
+
+
+def build(plans_path):
+    plans = json.load(open(plans_path, encoding="utf-8"))
+    if isinstance(plans, dict):
+        plans = [plans]
+    for pl in plans:
+        pl.setdefault("name", "方案")
+        pl.setdefault("blurb", "")
+        annotate(pl)
     data = {
         "position": P.POSITION, "resources": P.RESOURCES,
-        "owned": sorted(P.OWNED), "targets": plan["targets"],
+        "owned": sorted(P.OWNED),
         "wanted": P.WANTED, "heuristics": P.HEURISTICS,
         "top": TOP, "allUbers": ALL_UBERS, "legendOnly": LEGEND_ONLY,
-        "tracks": tracks(), "plan": plan,
+        "tracks": tracks(), "plans": plans,
     }
     tpl = open(os.path.join(D, "analysis", "board.html"), encoding="utf-8").read()
     html = tpl.replace("/*__DATA__*/null", json.dumps(data, ensure_ascii=False))
@@ -59,4 +69,4 @@ def build(plan_path):
 
 
 if __name__ == "__main__":
-    build(os.path.join(D, "artifact", "plan.json"))
+    build(os.path.join(D, "artifact", "plans.json"))
