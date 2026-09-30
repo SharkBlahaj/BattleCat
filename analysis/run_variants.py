@@ -10,20 +10,26 @@ FATE5 = ["Archer", "Rider", "Gilgamesh", "Lancer", "伊莉雅蘇菲爾"]
 W = P.WANTED
 
 VARIANTS = [
+    ("只要四主目標", "只收凱斯莉、希莉烏斯、吳仲力、京坂七穗，不追 Fate",
+     W, dict(n_leg=0)),
+    ("四主目標 · 省稀有卷", "只收四隻，且稀有卷限 12 張——這就是先前那條 9000 罐頭的版本",
+     W, dict(n_leg=0, n_rare=12)),
     ("全收 · 最省罐頭", "四個主目標 ＋ Fate 缺的五隻，罐頭壓到最低",
      W + FATE5, dict(n_leg=0)),
     ("全收 · 省稀有卷", "同樣全收，但把稀有卷限制在 12 張，多出來的距離改用必中連抽",
      W + FATE5, dict(n_leg=0, n_rare=12)),
     ("全收 ＋ 黑金卷", "開放 3 張黑金卷；踩到最高階格時可換傳說レア",
-     W + FATE5, dict(n_leg=3)),
-    ("只要四主目標", "只收凱斯莉、希莉烏斯、吳仲力、京坂七穗，不追 Fate",
-     W, dict(n_leg=0)),
-    ("四主目標 · 省稀有卷", "只收四隻，且稀有卷限 12 張——這就是先前那條 9000 罐頭的版本",
-     W, dict(n_leg=0, n_rare=12)),
+     W + FATE5, dict(n_leg=3, n_rare=30)),
 ]
 
-out = []
+OUT = os.path.join(D, "artifact", "plans.json")
+out = json.load(open(OUT, encoding="utf-8")) if os.path.exists(OUT) else []
+done = {r["name"] for r in out}
+
 for name, blurb, targets, kw in VARIANTS:
+    if name in done:
+        print(f"[skip] {name}: 已算過", flush=True)
+        continue
     t0 = time.time()
     r = plan_dedup.solve(targets, **kw)
     if not r:
@@ -36,9 +42,8 @@ for name, blurb, targets, kw in VARIANTS:
     r["haul"] = [x for x in dict.fromkeys(allu) if x not in P.OWNED]
     r["pulls"] = sum(1 for s in r["steps"] if "必中" in s["label"])
     out.append(r)
+    json.dump(out, open(OUT, "w"), ensure_ascii=False)   # 每算完一個就存，避免中途死掉全丟
     print(f"[ok] {name}: 罐頭 {r['food']} 稀有卷 {r['rare']} 白金 {r['plat']} "
           f"黑金 {r['leg']} 收穫 {len(r['haul'])} ({time.time()-t0:.0f}s)", flush=True)
 
-json.dump(out, open(os.path.join(D, "artifact", "plans.json"), "w"),
-          ensure_ascii=False)
 print("wrote plans.json with", len(out), "variants")
