@@ -2,11 +2,12 @@
 """從 track_data 產生互動式抽軌路徑圖 (單一 HTML)。"""
 import json, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "data"))
-from track_data_now import A, B, TRACK, UBERS, COST_SINGLE, COST_GUARANTEED
+from track_data_v3 import A, B, TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, SUSPECT
 
 SHORT = {"Gilgamesh": "Gil", "衛宮士郎": "士郎", "遠坂凜": "凜",
          "間桐櫻": "櫻", "伊莉雅蘇菲爾": "伊莉雅", "真Assassin": "Assassin"}
-TARGETS = {"Saber", "間桐櫻"}
+HAVE = {"Saber", "間桐櫻", "遠坂凜", "真Assassin", "衛宮士郎"}
+TARGETS = UBERS - HAVE
 
 def cells():
     out = {}
@@ -53,30 +54,30 @@ def route(name, blurb, steps):
 import combos_from
 from solver import Solver
 
-_CORE = ["Saber", "間桐櫻"]
+_LEFT = sorted(TARGETS)
 _combos = combos_from.build(TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, 11,
-                            "1A", _CORE)
+                            "1A", [], SUSPECT, min_ubers=1)
+_combos = [c for c in _combos if any(u in TARGETS for u in c["ubers"])]
 for _c in _combos:
     for _s in _c["steps"]:
         _s.pop("got", None)
 
-# 指定目標組 → 取最省路線
 _SPECS = [
-    ("最短收尾", _CORE,
-     "只補完兩隻必收。5A 那一發保底是間桐櫻，涵蓋的第 10 格 14A 結果欄正是 Saber"),
-    ("＋遠坂凜", _CORE + ["遠坂凜"],
-     "只多插一次單抽改打 16B，凜和衛宮士郎一起進袋。加碼 1650 換兩隻，均攤最低"),
-    ("四隻目標全收", _CORE + ["遠坂凜", "真Assassin"],
-     "在上一條後面再走一格打 28A 收真Assassin。四隻想要的全到齊，還附送衛宮士郎"),
-    ("最佳均攤", _CORE + ["Gilgamesh", "Lancer"],
-     "不收凜和真Assassin，改走 17B／28B 那條線。均攤 810 是全表最低，但拿不到你點名的兩隻"),
-    ("全十隻", sorted(UBERS),
-     "本活動十隻超激レア一網打盡，不留遺憾"),
+    ("伊莉雅蘇菲爾", ["伊莉雅蘇菲爾"],
+     "最便宜的一隻。5A 那一發直接保底，四次單抽就位"),
+    ("Rider", ["Rider"],
+     "第二便宜。走到 7A 打必中，保底就是 Rider"),
+    ("Gilgamesh ＋ Rider", ["Gilgamesh", "Rider"],
+     "一趟收兩隻，均攤比單拿 Gilgamesh 還低"),
+    ("四隻", ["Archer", "Gilgamesh", "Rider", "伊莉雅蘇菲爾"],
+     "只留 Lancer 不收。均攤最低的中段方案"),
+    ("五隻全收", _LEFT,
+     "本活動十隻超激レア就此到齊。最後一步在 60A 花 150 單抽撿 Gilgamesh"),
 ]
 
 
 def _by_targets(targets):
-    s = Solver(TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, 11)
+    s = Solver(TRACK, UBERS, COST_SINGLE, COST_GUARANTEED, 11, SUSPECT)
     s.search("1A")
     r = s.cheapest_for(targets)
     if not r:
@@ -97,11 +98,10 @@ def _by_targets(targets):
 ROUTES = []
 for _name, _tg, _blurb in _SPECS:
     _r = _by_targets(_tg)
-    if not _r:
-        continue
-    _r["name"] = _name
-    _r["blurb"] = _blurb
-    ROUTES.append(_r)
+    if _r:
+        _r["name"] = _name
+        _r["blurb"] = _blurb
+        ROUTES.append(_r)
 
 DATA = {"cells": cells(), "routes": ROUTES, "targets": sorted(TARGETS),
         "ubers": sorted(UBERS), "start": "1A",

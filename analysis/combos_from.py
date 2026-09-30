@@ -18,13 +18,14 @@ def merge_singles(steps):
     return out
 
 
-def build(track, ubers, cost_single, cost_guar, guar_draws, start, targets):
-    s = Solver(track, ubers, cost_single, cost_guar, guar_draws)
+def build(track, ubers, cost_single, cost_guar, guar_draws, start, targets,
+          suspect=(), min_ubers=1):
+    s = Solver(track, ubers, cost_single, cost_guar, guar_draws, suspect)
     s.search(start)
     need = s.mask_of(targets)
     best = {}
     for (pos, mask), c in s.dist.items():
-        if (mask & need) != need:
+        if (mask & need) != need or bin(mask).count("1") < min_ubers:
             continue
         if mask not in best or best[mask][0] > c:
             best[mask] = (c, pos)

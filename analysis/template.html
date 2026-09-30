@@ -213,7 +213,8 @@ footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font
 .chip{all:unset; cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:11px; padding:3px 8px; border-radius:2px; border:1px solid var(--line); color:var(--ink-2); background:var(--surface-2)}
 .chip:focus-visible{outline:2px solid var(--trackA); outline-offset:1px}
 .chip[aria-pressed="true"]{background:var(--gold-soft); color:var(--gold); border-color:var(--gold-line); font-weight:600}
-.chip[disabled]{cursor:default; background:var(--rose-soft); color:var(--rose); border-color:var(--rose-line); font-weight:600; opacity:1}
+.chip.want{border-color:var(--rose-line); color:var(--rose)}
+.chip.want[aria-pressed="true"]{background:var(--rose-soft); color:var(--rose); border-color:var(--rose)}
 .count{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); margin:12px 0 8px}
 .clist{border:1px solid var(--line); border-radius:3px; overflow:hidden; background:var(--surface)}
 .crow{all:unset; cursor:pointer; display:grid; grid-template-columns:78px 46px 62px 1fr; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); width:100%; box-sizing:border-box}
@@ -248,18 +249,18 @@ footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font
   <header>
     <div class="eyebrow">貓咪大戰爭 · Fate/stay night 合作轉蛋</div>
     <h1>抽軌路徑圖</h1>
-    <p class="sub">這條軌道是固定的：從哪一格開抽、用單抽還是必中11連，決定了你會拿到誰。編號已對齊 godfat 目前的顯示（你的位置重設為第 1 列）。5A 那一發必中的保底是間桐櫻，而它涵蓋的第 10 格 14A 結果欄正是 Saber——一發 1500 同時收兩隻。</p>
+    <p class="sub">這條軌道是固定的：從哪一格開抽、用單抽還是必中11連，決定了你會拿到誰。編號已對齊 godfat 目前的顯示。Fate 十隻超激レア你已收下五隻，剩 Archer、Lancer、Rider、Gilgamesh、伊莉雅蘇菲爾。這段軌道有七格的結果欄直接是超激レア，150 罐頭的單抽就能撿。</p>
     <div class="meta">
       <span><b>seed</b> 2593032074</span>
       <span><b>活動</b> 2026-09-28_1081</span>
-      <span><b>目前位置</b> <span id="startPos">1A</span></span><span><b>已到手</b> 地獄警官艾瑪、拉斯沃斯</span><span><b>想收</b> Saber、間桐櫻、真Assassin、遠坂凜</span>
+      <span><b>目前位置</b> <span id="startPos">1A</span></span><span><b>已到手</b> Saber、間桐櫻、遠坂凜、真Assassin、衛宮士郎</span><span><b>尚缺</b> Archer、Lancer、Rider、Gilgamesh、伊莉雅蘇菲爾</span>
       <span><b>單抽</b> 150 罐頭</span>
       <span><b>必中11連</b> 1500 罐頭</span>
     </div>
   </header>
 
   <section class="sec">
-    <div class="sec-head"><h2>路線</h2><span class="hint">全部從第 1 列出發，皆保證拿到 Saber ＋ 間桐櫻；標示的方案另含真Assassin／遠坂凜</span></div>
+    <div class="sec-head"><h2>路線</h2><span class="hint">全部從第 1 列出發，目標是補完尚缺的五隻</span></div>
     <div class="routes" id="routes"></div>
     <div class="steps" id="steps"></div>
   </section>
@@ -278,7 +279,7 @@ footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font
   </section>
 
   <section class="sec">
-    <div class="sec-head"><h2>組合瀏覽器</h2><span class="hint">從第 1 列出發、最終同時持有 Saber 與間桐櫻的所有組合</span></div>
+    <div class="sec-head"><h2>組合瀏覽器</h2><span class="hint">從第 1 列出發、至少含一隻尚缺角色的所有組合（粉色 chip 為尚缺）</span></div>
     <div class="filters">
       <div class="f"><label for="fBudget">預算上限 <output id="fBudgetOut"></output></label>
         <input type="range" id="fBudget" min="6450" max="13350" step="150"></div>
@@ -299,13 +300,13 @@ footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); font
       <div><h3>格子流模型</h3><p>把亂數想成一條連續的格子流。A 軌第 N 行佔格子 <code>2N-1, 2N</code>；B 軌第 N 行佔 <code>2N, 2N+1</code>。兩軌交錯，差一格。</p></div>
       <div><h3>單抽吃 2 格</h3><p>位置往下一行，軌道不變：<code>NA → (N+1)A</code>、<code>NB → (N+1)B</code>。</p></div>
       <div><h3>必中11連吃 21 格</h3><p>10 抽各 2 格，保底那一抽多吃 1 格。所以 <code>NA → (N+10)B</code>、<code>NB → (N+11)A</code> — 軌道必定翻面。</p></div>
-      <div><h3>結果欄也會吐超激レア</h3><p>不只保底。<code>14A</code> 是 Saber、<code>25A</code> 是 Archer、<code>19B</code> 是衛宮士郎、<code>28B</code> 是 Lancer、<code>80B</code> 是 Rider、<code>88B</code> 是 Gilgamesh。踩到這六格，150 罐頭的單抽就能拿一隻。</p></div><div><h3>17B–25B / 50B–62B 例外</h3><p>這些 11 連中途踩到連續同貓觸發重抽，又多吃 1 格，把軌道推回原位，所以落點仍在 B 軌。</p></div>
+      <div><h3>結果欄也會吐超激レア</h3><p>不只保底。<code>52A</code>、<code>94A</code> 是 Rider，<code>60A</code> 是 Gilgamesh，<code>80A</code> 是伊莉雅蘇菲爾，<code>64A</code> 是衛宮士郎，<code>71A</code>、<code>77A</code> 是遠坂凜。踩到這七格，150 罐頭的單抽就能拿一隻。</p></div><div><h3>13A–25A 例外</h3><p>這一帶的 11 連中途踩到連續同貓觸發重抽，多吃 1 格，落點變成同軌的 <code>N+11</code> 而不是對軌的 <code>N+10</code>。</p></div>
     </div>
   </section>
 
   <footer>
-    資料來源：godfat 抽蛋模擬器（seed 2593032074、活動 2026-09-28_1081），編號為推進後的目前視圖。舊視圖第 35–100 列與此處第 1–66 列已逐格交叉驗證一致（結果欄 132 格、保底欄 111 格）。<br>
-    26B、60B、64B 標有重抽換軌記號，上列路線皆未經過這三格。
+    資料來源：godfat 抽蛋模擬器（seed 2593032074、活動 2026-09-28_1081），編號為目前視圖（godfat 已把你所在的軌道標為 A 軌）。前一視圖的 A 欄第 39–100 列與此處 B 欄第 1–62 列逐格驗證一致。<br>
+    22A、26A 標有重抽換軌記號，上列路線皆未經過這兩格。
   </footer>
 </div>
 
@@ -507,16 +508,14 @@ fBudget.value = fBudget.max;
 DATA.ubers.forEach(u => {
   const b = document.createElement('button');
   b.className = 'chip'; b.type = 'button'; b.textContent = u;
-  if (isT(u)) { b.disabled = true; b.setAttribute('aria-pressed', 'true'); }
-  else {
-    chipState[u] = false;
-    b.setAttribute('aria-pressed', 'false');
-    b.addEventListener('click', () => {
-      chipState[u] = !chipState[u];
-      b.setAttribute('aria-pressed', String(chipState[u]));
-      renderCombos();
-    });
-  }
+  if (isT(u)) b.classList.add('want');
+  chipState[u] = false;
+  b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', () => {
+    chipState[u] = !chipState[u];
+    b.setAttribute('aria-pressed', String(chipState[u]));
+    renderCombos();
+  });
   fChips.appendChild(b);
 });
 
