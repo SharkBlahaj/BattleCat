@@ -20,8 +20,11 @@ def solve(targets, rounds=8, **kw):
         r = RP.plan(targets, **kw)
         if not r:
             break
-        guars = [s["got"][-1] for s in r["steps"] if "必中" in s["label"]]
-        dups = {g for g in guars if guars.count(g) > 1 and g not in targets}
+        # 保底 + 視窗內自然出現的超激，全部納入重複檢查
+        picked = []
+        for s in r["steps"]:
+            picked += [g for g in s["got"] if g in RP.ALL_UBERS]
+        dups = {g for g in picked if picked.count(g) > 1 and g not in targets}
         if best is None or (len(dups), r["food"]) < best[0]:
             best = ((len(dups), r["food"]), r, set(penal))
         if not dups:

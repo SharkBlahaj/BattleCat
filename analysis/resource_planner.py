@@ -19,8 +19,11 @@ FOOD_SINGLE = 150
 # 稀有卷略低於單抽（單格時優先），但必中連抽因為附贈保底超激而更划算，
 # 所以長距離會自然選 11 連而不是一格一格用稀有卷。
 SHADOW = {"rare": 140, "single": 150, "plat": 400, "leg": 1500}
-NEW_UBER_BONUS = 500      # 保底是沒有的超激 → 折抵
+NEW_UBER_BONUS = 500      # 連抽視窗內每一隻「還沒有的超激」→ 折抵
 DUP_UBER_PENALTY = 400    # 保底是已經有的超激 → 加罰
+
+# 所有活動的超激レア聯集（用來辨識視窗內自然出現的超激）
+ALL_UBERS = FATE.UBERS | EP3.UBERS | EP4.UBERS
 
 
 def plan(targets, start="1A", n_rare=54, n_plat=3, n_leg=3):
@@ -74,8 +77,11 @@ def plan(targets, start="1A", n_rare=54, n_plat=3, n_leg=3):
             gd = M.GUAR_DRAWS
             if dest:
                 got = tuple(tbl[n + i][0] for i in range(gd - 1)) + (guar,)
-                adj = (-NEW_UBER_BONUS if guar not in P.OWNED
-                       else DUP_UBER_PENALTY)
+                # 視窗內自然出現的超激也算收穫，不是只看保底
+                new = {g for g in got if g in ALL_UBERS and g not in P.OWNED}
+                adj = -NEW_UBER_BONUS * len(new)
+                if guar in P.OWNED:
+                    adj += DUP_UBER_PENALTY
                 out.append((f"{name} 必中{gd}連", M.COST_GUARANTEED,
                             M.COST_GUARANTEED + adj, got, dest, r, p, l))
         return out
