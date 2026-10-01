@@ -1,0 +1,400 @@
+<title>抽軌規劃盤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#ECEEF3; --surface:#FFFFFF; --surface-2:#F5F6FA; --surface-3:#E4E7EF;
+  --ink:#171A24; --ink-2:#5B6178; --ink-3:#868CA1;
+  --line:#D3D7E2; --line-strong:#B6BCCC;
+  --gold:#8C6205; --gold-soft:#F6E8C4; --gold-line:#DFC182;
+  --rose:#A42A4D; --rose-soft:#F9DCE3; --rose-line:#E7B3C0;
+  --jade:#136B52; --jade-soft:#D7EDE5; --jade-line:#9ACBBA;
+  --violet:#5B3C93; --violet-soft:#E7E0F5; --violet-line:#BCA8E0;
+  --trackA:#17647F; --trackB:#71428A;
+  --shadow:0 1px 2px rgba(23,26,36,.06), 0 8px 24px -12px rgba(23,26,36,.18);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --jade:#6CCBAB; --jade-soft:#123028; --jade-line:#2C5D4D;
+  --violet:#B79BE8; --violet-soft:#241A3A; --violet-line:#4A3A6E;
+  --trackA:#66BAD4; --trackB:#C293D7;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --jade:#6CCBAB; --jade-soft:#123028; --jade-line:#2C5D4D;
+  --violet:#B79BE8; --violet-soft:#241A3A; --violet-line:#4A3A6E;
+  --trackA:#66BAD4; --trackB:#C293D7;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); margin:0; font-size:15px; line-height:1.6;
+  font-family:"Noto Sans TC","Archivo",system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px; margin:0 auto; padding-inline:16px; padding-block:28px 72px}
+h1,h2,h3{font-family:"Archivo","Noto Sans TC",system-ui,sans-serif; margin:0; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-3); margin-bottom:10px}
+h1{font-size:clamp(26px,5.4vw,38px); font-weight:800; letter-spacing:-.02em; line-height:1.15}
+.sub{color:var(--ink-2); margin-top:10px; max-width:64ch; font-size:14.5px}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line); margin-top:20px}
+.stat{background:var(--surface); padding:11px 13px}
+.stat .k{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--ink-3)}
+.stat .v{font-family:"IBM Plex Mono",monospace; font-size:19px; font-weight:600; margin-top:2px}
+.stat .n{font-size:11.5px; color:var(--ink-3)}
+
+.sec{margin-top:40px}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:14px; flex-wrap:wrap}
+.sec-head h2{font-size:15px; font-weight:700}
+.sec-head .hint{font-size:12.5px; color:var(--ink-3)}
+
+/* chips */
+.chips{display:flex; flex-wrap:wrap; gap:5px}
+.chip{font-family:"IBM Plex Mono",monospace; font-size:11px; padding:3px 8px; border-radius:2px;
+  border:1px solid var(--line); background:var(--surface-2); color:var(--ink-2)}
+.chip.own{background:var(--surface-3); color:var(--ink-3); text-decoration:line-through}
+.chip.tgt{background:var(--rose-soft); color:var(--rose); border-color:var(--rose-line); font-weight:600}
+.chip.got{background:var(--jade-soft); color:var(--jade); border-color:var(--jade-line); font-weight:600}
+.chip.leg{background:var(--violet-soft); color:var(--violet); border-color:var(--violet-line); font-weight:600}
+
+/* plan picker */
+.plans{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px}
+.pcard{all:unset; cursor:pointer; display:block; background:var(--surface);
+  border:1px solid var(--line); padding:14px 15px; transition:border-color .12s}
+.pcard:hover{border-color:var(--line-strong)}
+.pcard:focus-visible{outline:2px solid var(--trackA); outline-offset:2px}
+.pcard[aria-pressed="true"]{border-color:var(--ink); background:var(--surface)}
+.pcard[aria-pressed="true"] .pn{color:var(--ink)}
+.ptop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.pn{font-family:"Archivo","Noto Sans TC",sans-serif; font-weight:700; font-size:14.5px}
+.pf{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:17px}
+.pm{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); margin-top:3px}
+.pb{font-size:12.5px; color:var(--ink-2); margin-top:9px; line-height:1.5}
+.ph{display:flex; flex-wrap:wrap; gap:4px; margin-top:10px}
+
+/* route */
+.route{border:1px solid var(--line); background:var(--surface)}
+.step{display:grid; grid-template-columns:30px 1fr; gap:12px; padding:13px 15px; border-top:1px solid var(--line)}
+.step:first-child{border-top:none}
+.step.g{background:var(--gold-soft)}
+.si{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); padding-top:2px}
+.sh{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px}
+.sk{font-weight:700; font-size:13.5px}
+.sk.g{color:var(--gold)}
+.sm{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-2)}
+.sc{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); margin-left:auto}
+.sg{margin-top:7px}
+.alt{margin-top:9px; border:1px solid var(--line); background:var(--surface)}
+.alt-row{display:grid; grid-template-columns:62px 1fr 56px; gap:8px; padding:6px 10px;
+  border-top:1px solid var(--line); font-size:12.5px; align-items:baseline}
+.alt-row:first-child{border-top:none}
+.alt-row.pick{background:var(--jade-soft)}
+.alt-row .b{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2)}
+.alt-row .d{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); text-align:right}
+.alt-sub{padding:2px 10px 6px 80px; font-size:11.5px; color:var(--ink-3)}
+
+/* ladder */
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-bottom:12px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px;
+  vertical-align:-1px; border:1px solid var(--line-strong)}
+.ladder{border-top:1px solid var(--line)}
+.hrow,.row{display:grid; grid-template-columns:1fr 46px 1fr}
+.hrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-3); padding:8px 0; position:sticky;
+  top:env(safe-area-inset-top,0px); background:var(--bg); z-index:5; border-bottom:1px solid var(--line)}
+.hrow span:first-child{color:var(--trackA); padding-left:11px}
+.hrow span:last-child{color:var(--trackB); text-align:right; padding-right:11px}
+.hrow span:nth-child(2){text-align:center; letter-spacing:.06em}
+.rail{display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono",monospace;
+  font-size:11px; color:var(--ink-3); border-inline:1px solid var(--line); background:var(--surface-2)}
+.cell{all:unset; cursor:pointer; display:block; padding:6px 11px; border-bottom:1px solid var(--line); min-height:40px}
+.cell.b{text-align:right}
+.cell:hover{background:var(--surface-3)}
+.cell:focus-visible{outline:2px solid var(--trackA); outline-offset:-2px}
+.cr{font-size:12.5px; font-weight:500; line-height:1.3}
+.cr.uber{color:var(--gold); font-weight:700}
+.cr.tgt{color:var(--rose)}
+.cn{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3); margin-top:1px}
+.cell.cov-s{background:var(--surface-3)}
+.cell.cov-g{background:var(--gold-soft)}
+.cell.cov-t{background:var(--violet-soft)}
+.cell.topcell{box-shadow:inset 3px 0 0 var(--gold)}
+.cell.b.topcell{box-shadow:inset -3px 0 0 var(--gold)}
+.detail{grid-column:1/-1; background:var(--surface); border-bottom:1px solid var(--line);
+  padding:13px 15px; box-shadow:var(--shadow)}
+.dtop{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; margin-bottom:9px}
+.dpos{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:16px}
+.dnote{font-size:12.5px; color:var(--ink-2)}
+.dgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line)}
+.dc{background:var(--surface); padding:7px 10px}
+.dc .s{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3)}
+.dc .v{font-size:12.5px; line-height:1.35}
+.dc .g{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-3); margin-top:2px}
+
+.mech{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line)}
+.mech div{background:var(--surface); padding:14px 15px}
+.mech h3{font-size:13px; font-weight:700; margin-bottom:6px}
+.mech p{margin:0; font-size:13px; color:var(--ink-2); line-height:1.6}
+.mech code{font-family:"IBM Plex Mono",monospace; font-size:12px; background:var(--surface-2); padding:1px 4px; border-radius:2px}
+footer{margin-top:44px; padding-top:18px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-3); line-height:1.7}
+@media (max-width:560px){
+  .row,.hrow{grid-template-columns:1fr 34px 1fr}
+  .cell{padding:5px 8px}
+  .cr{font-size:11.5px}
+  .alt-row{grid-template-columns:54px 1fr 48px}
+  .alt-sub{padding-left:66px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">貓咪大戰爭 · seed 2593032074 · 五池共用同一條軌道</div>
+    <h1>抽軌規劃盤</h1>
+    <p class="sub">Fate、活動3、活動4、白金卷、黑金卷全部推進同一個位置計數器，所以它們不是五筆預算，而是同一條時間軸上的選擇。下面是目前的最佳路線，以及每個岔路口三個活動各自會給什麼。</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head"><h2>目標與庫存</h2><span class="hint">刪除線 = 已擁有</span></div>
+    <div id="rosters"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>方案</h2><span class="hint">點卡片切換，下方路線與軌道圖會跟著變</span></div>
+    <div class="plans" id="plans"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>路線</h2><span class="hint">金色 = 必中連抽，底下列出三個活動的選項</span></div>
+    <div class="route" id="route"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>軌道</h2><span class="hint">點任一格看五個來源各給什麼</span></div>
+    <div class="legend">
+      <span><i style="background:var(--surface-3)"></i>路線經過（單抽／卷）</span>
+      <span><i style="background:var(--gold-soft)"></i>路線經過（必中連抽）</span>
+      <span><i style="background:var(--violet-soft)"></i>用白金／黑金卷</span>
+      <span><i style="background:var(--gold)"></i>最高階格（必出超激／傳說）</span>
+    </div>
+    <div class="ladder" id="ladder">
+      <div class="hrow"><span>A 軌</span><span>行</span><span>B 軌</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>機制</h2></div>
+    <div class="mech">
+      <div><h3>共用位置</h3><p>每一抽都推進同一個位置，不管抽的是哪個池子。所以「先抽哪個活動」會改變後面所有活動的結果。</p></div>
+      <div><h3>必中連抽的跳轉</h3><p>11 連吃 21 格：<code>NA → (N+10)B</code>、<code>NB → (N+11)A</code>，軌道必定翻面。落點可能因活動而異。</p></div>
+      <div><h3>重抽格</h3><p>連續同貓會觸發重抽、多吃一格並換軌。重抽點 k 會讓起點落在 <code>[k-9, k-1]</code> 的那 9 發偏離。</p></div>
+      <div><h3>最高階格</h3><p><code>52 · 60 · 64 · 71 · 77 · 80 · 94</code>（A 軌）由共用亂數決定，每個池子都用自己的最高階填進去——普通池給超激，黑金卷給傳說。</p></div>
+    </div>
+  </section>
+
+  <footer>
+    資料來源：godfat 抽蛋模擬器，編號為目前視圖。跨活動已交叉驗證（結果欄 132 格、保底欄 111 格逐格吻合；活動3／活動4 之間 193 格中 169 格相同）。
+  </footer>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const T = D.tracks, OWN = new Set(D.owned), TGT = new Set(D.targets);
+const TOP = new Set(D.top), UB = new Set(D.allUbers), LEG = new Set(D.legendOnly);
+const GACHA = ["Fate","活動3","活動4"], SOURCES = [...GACHA,"白金卷","黑金卷"];
+let cur = 0;
+let got = new Set();
+function recomputeGot(p){
+  got = new Set();
+  p.merged.forEach(s => s.got.forEach(g => {
+    if (!OWN.has(g) && (UB.has(g) || TGT.has(g) || LEG.has(g))) got.add(g);
+  }));
+}
+
+function cls(n){
+  if (TGT.has(n) && !OWN.has(n)) return 'tgt';
+  if (OWN.has(n)) return 'own';
+  if (LEG.has(n)) return 'leg';
+  if (got.has(n)) return 'got';
+  return '';
+}
+function chips(list){
+  return '<div class="chips">' + list.map(n =>
+    '<span class="chip ' + cls(n) + '">' + n + '</span>').join('') + '</div>';
+}
+
+/* stats */
+function renderStats(p){
+document.getElementById('stats').innerHTML = [
+  ['目前位置', D.position, ''],
+  ['罐頭', p.food.toLocaleString(), '庫存 ' + D.resources['罐頭'].toLocaleString()],
+  ['稀有卷', p.rare, '庫存 ' + D.resources['稀有卷']],
+  ['白金卷', p.plat + '/3', ''],
+  ['黑金卷', p.leg + '/3', ''],
+  ['終點', p.end, ''],
+  ['收穫', got.size + ' 隻', '超激／傳說'],
+].map(([k,v,n]) => '<div class="stat"><div class="k">' + k + '</div><div class="v">' + v +
+  '</div>' + (n ? '<div class="n">' + n + '</div>' : '') + '</div>').join('');
+}
+
+/* rosters */
+function renderRosters(p){
+document.getElementById('rosters').innerHTML =
+  '<div style="margin-bottom:12px"><div class="k mono" style="font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">本次目標</div>' +
+  chips(p.targets) + '</div>' +
+  '<div style="margin-bottom:12px"><div class="k mono" style="font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">這條路線的收穫</div>' +
+  chips([...got]) + '</div>' +
+  '<div><div class="k mono" style="font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px">已擁有</div>' +
+  chips(D.owned) + '</div>';
+}
+
+/* route */
+function guarAt(pos, banner){
+  const n = +pos.slice(0,-1), t = pos.slice(-1), c = T[banner][t][n];
+  return c && c[1] ? {guar:c[1], dest:c[2]} : null;
+}
+function topsIn(pos, banner, draws){
+  const n = +pos.slice(0,-1), t = pos.slice(-1), out = [];
+  for (let i=0;i<draws;i++){
+    if (t==='A' && TOP.has(n+i)){
+      const c = T[banner].A[n+i];
+      if (c) out.push([n+i, c[0]]);
+    }
+  }
+  return out;
+}
+function renderRoute(p){
+document.getElementById('route').innerHTML = p.merged.map((s,i) => {
+  const isG = s.kind === 'g';
+  const gains = [...new Set(s.got)].filter(g => (UB.has(g)||TGT.has(g)) && !OWN.has(g));
+  let alt = '';
+  if (isG){
+    alt = '<div class="alt">' + GACHA.map(b => {
+      const g = guarAt(s.from, b);
+      if (!g) return '';
+      const tp = topsIn(s.from, b, T[b].guarDraws - 1);
+      return '<div class="alt-row' + (b===s.banner?' pick':'') + '">' +
+        '<span class="b">' + (b===s.banner?'► ':'') + b + '</span>' +
+        '<span>保底 <span class="chip ' + cls(g.guar) + '">' + g.guar + '</span></span>' +
+        '<span class="d">→ ' + g.dest + '</span></div>' +
+        tp.map(([c,v]) => '<div class="alt-sub">└ ' + c + 'A：<span class="chip ' +
+          cls(v) + '">' + v + '</span></div>').join('');
+    }).join('') + '</div>';
+  } else {
+    const tops = s.cover.filter(c => c.endsWith('A') && TOP.has(+c.slice(0,-1)));
+    if (tops.length){
+      alt = tops.map(c => {
+        const n = +c.slice(0,-1);
+        return '<div class="alt"><div class="alt-row" style="grid-template-columns:1fr">' +
+          '<span class="b">最高階格 ' + c + '</span></div>' +
+          SOURCES.map(b => {
+            const cc = T[b].A[n]; if (!cc) return '';
+            return '<div class="alt-row' + (b===s.banner?' pick':'') +
+              '" style="grid-template-columns:62px 1fr"><span class="b">' +
+              (b===s.banner?'► ':'') + b + '</span><span class="chip ' + cls(cc[0]) + '">' +
+              cc[0] + '</span></div>';
+          }).join('') + '</div>';
+      }).join('');
+    }
+  }
+  return '<div class="step' + (isG?' g':'') + '"><div class="si">' + (i+1) + '</div><div>' +
+    '<div class="sh"><span class="sk' + (isG?' g':'') + '">' + s.label + (s.n>1?' ×'+s.n:'') +
+    '</span><span class="sm">' + s.from + ' → ' + s.to + '</span>' +
+    '<span class="sc">' + (s.cost? s.cost.toLocaleString()+' 罐頭' : '0 罐頭') + '</span></div>' +
+    (gains.length ? '<div class="sg">' + chips(gains) + '</div>' : '') + alt + '</div></div>';
+}).join('');
+}
+
+/* ladder */
+let cover = {};
+const ladder = document.getElementById('ladder'), rowEls = {};
+function renderLadder(p){
+  cover = {};
+  p.merged.forEach((s,i) => s.cover.forEach(c => cover[c] = {i, kind:s.kind, banner:s.banner}));
+  closeD();
+  [...ladder.querySelectorAll('.row')].forEach(el => el.remove());
+  buildRows();
+}
+function buildRows(){
+for (let n=1;n<=100;n++){
+  const row = document.createElement('div'); row.className='row';
+  row.appendChild(mk(n,'A'));
+  const rail=document.createElement('div'); rail.className='rail'; rail.textContent=n;
+  row.appendChild(rail);
+  row.appendChild(mk(n,'B'));
+  ladder.appendChild(row); rowEls[n]=row;
+}
+}
+function mk(n,t){
+  const key=n+t, cv=cover[key];
+  const el=document.createElement('button'); el.type='button'; el.id='c-'+key;
+  el.className='cell'+(t==='B'?' b':'');
+  if (cv) el.classList.add(cv.banner && cv.banner.includes('卷') ? 'cov-t' : (cv.kind==='g'?'cov-g':'cov-s'));
+  if (t==='A' && TOP.has(n)) el.classList.add('topcell');
+  const ban = cv ? cv.banner : 'Fate';
+  const c = T[ban] && T[ban][t][n] ? T[ban][t][n] : (T.Fate[t][n]||['—']);
+  el.innerHTML = '<div class="cr ' + (UB.has(c[0])||LEG.has(c[0])?'uber ':'') +
+    (TGT.has(c[0])&&!OWN.has(c[0])?'tgt':'') + '">' + c[0] + '</div>' +
+    '<div class="cn">' + (cv ? '步驟 '+(cv.i+1)+' · '+cv.banner : '未經過') + '</div>';
+  el.addEventListener('click', () => toggle(key));
+  return el;
+}
+/* plan picker */
+document.getElementById('plans').innerHTML = D.plans.map((p,i) =>
+  '<button type="button" class="pcard" id="p-'+i+'" aria-pressed="'+(i===0)+'">' +
+  '<div class="ptop"><span class="pn">'+p.name+'</span>' +
+  '<span class="pf">'+p.food.toLocaleString()+'</span></div>' +
+  '<div class="pm">罐頭 · 稀有卷 '+p.rare+' · 白金 '+p.plat+' · 黑金 '+p.leg+
+  ' · '+p.pulls+' 發必中</div>' +
+  '<div class="pb">'+p.blurb+'</div>' +
+  '<div class="ph">'+ (p.haul||[]).slice(0,20).map(n =>
+    '<span class="chip '+(TGT.has(n)?'tgt':(LEG.has(n)?'leg':'got'))+'">'+n+'</span>').join('') +
+  '</div></button>').join('');
+D.plans.forEach((_,i) => document.getElementById('p-'+i)
+  .addEventListener('click', () => select(i)));
+
+function select(i){
+  cur = i;
+  D.plans.forEach((_,j) => document.getElementById('p-'+j)
+    .setAttribute('aria-pressed', String(i===j)));
+  const p = D.plans[i];
+  recomputeGot(p);
+  renderStats(p); renderRosters(p); renderRoute(p); renderLadder(p);
+}
+select(0);
+
+let open=null;
+function toggle(key){
+  const prev=open; closeD(); if (prev===key) return;
+  const n=+key.slice(0,-1), t=key.slice(-1), cv=cover[key];
+  const d=document.createElement('div'); d.className='detail'; d.id='d-open';
+  d.innerHTML='<div class="dtop"><span class="dpos">'+key+'</span><span class="dnote">'+
+    (cv ? '路線第 '+(cv.i+1)+' 步經過，使用 '+cv.banner : '路線未經過')+
+    (t==='A'&&TOP.has(n)?'　·　最高階格，五個來源都必出超激／傳說':'')+'</span></div><div class="dgrid">'+
+    SOURCES.map(b=>{
+      const c=T[b][t][n]; if(!c) return '';
+      const g=c[1]?('保底 '+c[1]+' → '+c[2]):'';
+      return '<div class="dc"><div class="s">'+b+(cv&&cv.banner===b?' ◄ 已選':'')+'</div>'+
+        '<div class="v"><span class="chip '+cls(c[0])+'">'+c[0]+'</span></div>'+
+        (g?'<div class="g">'+g+'</div>':'')+'</div>';
+    }).join('')+'</div>';
+  rowEls[n].insertAdjacentElement('afterend', d); open=key;
+}
+function closeD(){ const d=document.getElementById('d-open'); if(d) d.remove(); open=null; }
+</script>
