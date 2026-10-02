@@ -26,7 +26,7 @@ DUP_UBER_PENALTY = 400    # 保底是已經有的超激 → 加罰
 ALL_UBERS = FATE.UBERS | EP3.UBERS | EP4.UBERS
 
 
-def plan(targets, start="1A", n_rare=54, n_plat=3, n_leg=3):
+def plan(targets, start="1A", n_rare=54, n_plat=3, n_leg=3, banners=None):
     BIT = {t: 1 << i for i, t in enumerate(targets)}
     FULL = (1 << len(targets)) - 1
 
@@ -37,6 +37,8 @@ def plan(targets, start="1A", n_rare=54, n_plat=3, n_leg=3):
                 m |= BIT[c]
         return m
 
+    use = [(nm, M) for nm, M in GACHA if banners is None or nm in banners]
+
     def moves(pos, r, p, l):
         n, t = int(pos[:-1]), pos[-1]
         nxt1 = f"{n+1}{t}"
@@ -44,7 +46,7 @@ def plan(targets, start="1A", n_rare=54, n_plat=3, n_leg=3):
         # 推進一格：各池的結果欄都可選，成本看用什麼資源
         # 一般單抽（同軌 +1）與重抽單抽（換軌跳轉）分開處理
         singles, rerolls = {}, {}
-        for name, M in GACHA:
+        for name, M in use:
             tbl = M.TRACK[t]
             rr = getattr(M, "REROLL", {}).get((t, n))
             if rr:
@@ -71,7 +73,7 @@ def plan(targets, start="1A", n_rare=54, n_plat=3, n_leg=3):
             out.append(("黑金卷", 0, SHADOW["leg"], (TK.LEGEND[t][n],),
                         nxt1, r, p, l + 1))
         # 必中連抽
-        for name, M in GACHA:
+        for name, M in use:
             tbl = M.TRACK[t]
             guar, dest = tbl[n][1], tbl[n][2]
             gd = M.GUAR_DRAWS
