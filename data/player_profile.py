@@ -1,7 +1,24 @@
 # -*- coding: utf-8 -*-
 """玩家資源與偏好（規劃時的硬約束與排序依據）。"""
 
-POSITION = "98B"         # 目前位置（所有池子共用）
+POSITION = "98B"         # 目前位置（所有池子共用），以 view3 編號為準
+
+# godfat 在前進後會重新編號視角。目前已驗證的換算：
+#   view2 = view1 - 34
+#   view3: 新 A = view2 B + 37, 新 B = view2 A + 38      （軌道互換）
+#   view4 = track_legend_1064：本表 A[n] = view3 B[n+96]
+#                              本表 B[n] = view3 A[n+97]  （軌道又互換一次）
+# 所以 POSITION "98B"（view3）== track_legend_1064 的 2A。
+VIEW4_OFFSET = {"A": ("B", 96), "B": ("A", 97)}
+
+
+def to_view4(pos):
+    """把 view3 的位置字串（例如 "98B"）換成 track_legend_1064 的編號。"""
+    n, side = int(pos[:-1]), pos[-1]
+    for ns, (os_, off) in VIEW4_OFFSET.items():
+        if os_ == side:
+            return f"{n - off}{ns}"
+    raise ValueError(pos)
 
 RESOURCES = {
     "罐頭": 1000,         # 86A 那發必中 -1500
