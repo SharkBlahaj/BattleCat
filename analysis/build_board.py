@@ -5,6 +5,7 @@ D = os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, os.path.join(D, "data"))
 import track_data_v3 as F, track_ep3 as E3, track_ep4 as E4
 import track_tickets as TK, player_profile as P
+import history as HIST
 
 BAN = {"Fate": F, "活動3": E3, "活動4": E4}
 TOP = [52, 60, 64, 71, 77, 80, 94]
@@ -46,6 +47,27 @@ def annotate(plan):
     return plan
 
 
+def walked():
+    """把第三視圖（目前編號）的歷程展開成可畫在軌道圖上的步驟。"""
+    era = next(e for e in HIST.ERAS if e["view"] == "track_data_v3")
+    out = []
+    for res, ban, frm, to, gains in era["steps"]:
+        n, t = int(frm[:-1]), frm[-1]
+        if "必中" in res:
+            cover = [f"{n+i}{t}" for i in range(HIST.GUAR_DRAWS[ban] - 1)]
+            kind = "g"
+        else:
+            cnt = int(res.split("×")[1]) if "×" in res else 1
+            cover = [f"{n+i}{t}" for i in range(cnt)]
+            kind = "t" if "卷" in res and "稀有" not in res else "s"
+        out.append({"label": f"{res}·{ban}", "from": frm, "to": to,
+                    "cost": 1500 if "必中" in res else 0,
+                    "got": gains, "cover": cover, "kind": kind,
+                    "banner": ban if ban in BAN else None,
+                    "n": len(cover)})
+    return out
+
+
 def build(plans_path):
     plans = json.load(open(plans_path, encoding="utf-8"))
     if isinstance(plans, dict):
@@ -60,6 +82,7 @@ def build(plans_path):
         "wanted": P.WANTED, "heuristics": P.HEURISTICS,
         "top": TOP, "allUbers": ALL_UBERS, "legendOnly": LEGEND_ONLY,
         "tracks": tracks(), "plans": plans,
+        "history": HIST.ERAS, "walked": walked(),
     }
     tpl = open(os.path.join(D, "analysis", "board.html"), encoding="utf-8").read()
     html = tpl.replace("/*__DATA__*/null", json.dumps(data, ensure_ascii=False))

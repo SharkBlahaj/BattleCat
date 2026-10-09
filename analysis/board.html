@@ -69,6 +69,23 @@ h1{font-size:clamp(26px,5.4vw,38px); font-weight:800; letter-spacing:-.02em; lin
 .chip.got{background:var(--jade-soft); color:var(--jade); border-color:var(--jade-line); font-weight:600}
 .chip.leg{background:var(--violet-soft); color:var(--violet); border-color:var(--violet-line); font-weight:600}
 
+/* history */
+.era{border:1px solid var(--line); background:var(--surface); margin-bottom:14px}
+.era-h{padding:12px 15px; border-bottom:1px solid var(--line); background:var(--surface-2)}
+.era-h .t{font-family:"Archivo","Noto Sans TC",sans-serif; font-weight:700; font-size:14px}
+.era-h .n{font-size:12.5px; color:var(--ink-2); margin-top:4px; line-height:1.5}
+.era-h .c{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); margin-top:6px}
+.hstep{display:grid; grid-template-columns:24px 118px 1fr; gap:10px; padding:8px 15px;
+  border-top:1px solid var(--line); align-items:baseline; font-size:12.5px}
+.hstep.g{background:var(--gold-soft)}
+.hstep.t{background:var(--violet-soft)}
+.hstep .i{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3)}
+.hstep .a{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2)}
+.hstep .m{font-family:"IBM Plex Mono",monospace; font-size:11.5px}
+.hstep .gains{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px}
+.stale{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3);
+  padding:7px 15px; background:var(--surface-2); border-top:1px solid var(--line)}
+
 /* plan picker */
 .plans{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px}
 .pcard{all:unset; cursor:pointer; display:block; background:var(--surface);
@@ -173,6 +190,12 @@ footer{margin-top:44px; padding-top:18px; border-top:1px solid var(--line); font
   <section class="sec">
     <div class="sec-head"><h2>目標與庫存</h2><span class="hint">刪除線 = 已擁有</span></div>
     <div id="rosters"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>走過的路徑</h2>
+      <span class="hint">godfat 每次推進後會重設編號，所以分成三個視圖時期；只有第三視圖是目前的編號</span></div>
+    <div id="history"></div>
   </section>
 
   <section class="sec">
@@ -356,6 +379,35 @@ function mk(n,t){
   return el;
 }
 /* plan picker */
+/* history */
+document.getElementById('history').innerHTML = D.history.map(e => {
+  const cost = Object.entries(e.cost).map(([k,v]) => k+' '+v).join(' · ');
+  return '<div class="era"><div class="era-h"><div class="t">'+e.era+'</div>' +
+    '<div class="n">'+e.note+'</div><div class="c">消耗 '+cost+'</div></div>' +
+    e.steps.map((st,i) => {
+      const res=st[0], ban=st[1], f=st[2], t=st[3], gains=st[4];
+      const k = res.indexOf('必中')>=0 ? 'g'
+        : ((res.indexOf('卷')>=0 && res.indexOf('稀有')<0) ? 't' : '');
+      return '<div class="hstep '+k+'"><span class="i">'+(i+1)+'</span>' +
+        '<span class="a">'+res+(ban!=='\u2014'?' · '+ban:'')+'</span>' +
+        '<span><span class="m">'+f+' \u2192 '+t+'</span>' +
+        (gains.length ? '<div class="gains">'+gains.map(n =>
+          '<span class="chip '+cls(n)+'">'+n+'</span>').join('')+'</div>' : '') +
+        '</span></div>';
+    }).join('') +
+    (e.view ? '' : '<div class="stale">此時期的表已被後續視圖取代，編號無法對應下方軌道圖</div>') +
+    '</div>';
+}).join('');
+
+/* 把「實際走過的路徑」當成第一個方案，軌道圖才畫得出來 */
+D.plans.unshift({
+  name:'\u2b24 已走過的路徑',
+  blurb:'第三視圖實際執行的 19 步；軌道圖會標出走過的範圍與所用池子。',
+  food:9000, rare:30, plat:3, leg:1, pulls:6, end:'98B',
+  targets:[], merged:D.walked,
+  haul:[...new Set(D.walked.reduce((a,s)=>a.concat(s.got),[]))]
+});
+
 document.getElementById('plans').innerHTML = D.plans.map((p,i) =>
   '<button type="button" class="pcard" id="p-'+i+'" aria-pressed="'+(i===0)+'">' +
   '<div class="ptop"><span class="pn">'+p.name+'</span>' +
