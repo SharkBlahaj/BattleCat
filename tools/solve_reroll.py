@@ -40,7 +40,7 @@ def value(pool, side, n, cat):
     if not t or t[1] not in HI: return 0
     if cat in PP.OWNED: return 0
     return -UBER_BONUS
-RARE0, LEG0 = 24, 2
+RARE0, LEG0 = 50, 3
 TARGET = '搖滾俏喵'
 
 def nxt(side, n):
