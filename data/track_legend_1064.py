@@ -437,6 +437,17 @@ LEGEND_1064 = {"A": dict(A), "B": dict(B)}
 RARITY = {"A": dict(RARITY_A), "B": dict(RARITY_B)}
 
 # godfat 在這 200 格裡標記的高稀有度格（exclusive / uber / uber_fest）
+
+# ── 重複 reroll ──────────────────────────────────────────────
+# 觸發條件（已用 godfat 的 last= 參數實測確認）：
+#   「這一格要給的貓」== 「上一抽實際抽到的貓」→ 系統重抽，
+#   多吃掉一個 RNG 格，於是換軌：A[n] -> B[n+1]，B[n] -> A[n+2]。
+# 這跟是不是 11 連無關，純粹看上一抽的結果；所以只要讓前一格
+# 在別的池抽到不同的貓，就不會觸發。
+# 值是 (重抽後的角色, 落點)。
+REROLL = {
+}
+
 TOP = {s: sorted(n for n, r in RARITY[s].items()
                  if r in ("exclusive", "uber", "uber_fest"))
        for s in "AB"}

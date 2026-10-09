@@ -429,6 +429,21 @@ ROCK_1077 = {"A": dict(A), "B": dict(B)}
 RARITY = {"A": dict(RARITY_A), "B": dict(RARITY_B)}
 HAS_NATIVE_GUARANTEED = False
 
+
+# ── 重複 reroll ──────────────────────────────────────────────
+# 觸發條件（已用 godfat 的 last= 參數實測確認）：
+#   「這一格要給的貓」== 「上一抽實際抽到的貓」→ 系統重抽，
+#   多吃掉一個 RNG 格，於是換軌：A[n] -> B[n+1]，B[n] -> A[n+2]。
+# 這跟是不是 11 連無關，純粹看上一抽的結果；所以只要讓前一格
+# 在別的池抽到不同的貓，就不會觸發。
+# 值是 (重抽後的角色, 落點)。
+REROLL = {
+    ("A",  19): ("貓咪探測器", "20B"),
+    ("A",  21): ("占卜貓", "22B"),
+    ("A",  50): ("小偷貓", "51B"),
+    ("B",  28): ("海賊貓", "30A"),
+}
+
 TOP = {s: sorted(n for n, r in RARITY[s].items()
                  if r in ("exclusive", "uber", "uber_fest", "legend"))
        for s in "AB"}
