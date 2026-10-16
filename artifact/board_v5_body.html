@@ -1,0 +1,67 @@
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">貓咪大戰爭 · seed 3288448950 · 第五視圖 · 2026-10-16</div>
+    <h1>抽軌規劃盤</h1>
+    <p class="sub">搖滾俏喵已到手，位置重設為 1A。這一格在現在開著的每一個池都是超激格，而且今天起有三個池重新提供必中 11 連 —— 睽違一週又能換軌了。</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head"><h2>剛完成：搖滾俏喵</h2>
+      <span class="hint">第四視圖 2A → 47A，全程單抽，沒動用罐頭</span></div>
+    <div class="route" id="done"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>你正站在超激格上</h2>
+      <span class="hint">1A 在每個池都是超激格，單抽就能拿</span></div>
+    <div class="dgrid now6" id="now"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>現在開著的池</h2>
+      <span class="hint">有必中才能換軌；白金／黑金卷只能單抽</span></div>
+    <div class="route" id="pools"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>雙軌</h2><span class="hint">點任一格看每個池給什麼、必中落點在哪</span></div>
+    <div class="legend">
+      <span><i style="background:var(--gold-soft); border-color:var(--gold-line)"></i>超激格</span>
+      <span><i style="background:var(--rose-soft); border-color:var(--rose-line)"></i>reroll 牆</span>
+      <span><i style="background:var(--jade-soft); border-color:var(--jade-line)"></i>目前位置</span>
+      <span>刪除線＝你已經有的</span>
+    </div>
+    <div class="refpick">
+      <label for="refBan">顯示哪個池</label>
+      <select id="refBan"></select>
+      <label for="rowMax">顯示到</label>
+      <select id="rowMax"><option value="40">第 40 行</option><option value="100">第 100 行</option></select>
+    </div>
+    <div class="ladder" id="ladder">
+      <div class="hrow"><span>A 軌</span><span>行</span><span>B 軌</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>已有的超激</h2><span class="hint" id="ownCount"></span></div>
+    <div class="chips" id="owned"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>機制</h2></div>
+    <div class="mech">
+      <div><h3>共用位置</h3><p>每一抽都推進同一個計數器，不管抽的是哪個池。八個池是同一條時間軸上的選擇，不是八筆預算。</p></div>
+      <div><h3>必中 11 連</h3><p>吃 21 格、必定翻軌：<code>A[n] → B[n+10]</code>、<code>B[n] → A[n+11]</code>。沒有必中的池只能單抽或普通 11 連，同軌前進、換不了軌。</p></div>
+      <div><h3>重複 reroll</h3><p>當這一格要給的貓等於上一抽抽到的貓，系統重抽、多吃一格並換軌：<code>A[n] → B[n+1]</code>。只看上一抽的結果，所以換池抽前一格就能拆掉。</p></div>
+      <div><h3>牆會汙染必中落點</h3><p>牆在第 k 格時，起點落在 <code>[k-9, k-1]</code> 的那 9 發必中會多吃一格、落點偏離一格。已用 1068／979／986 三個池各自獨立驗證。</p></div>
+    </div>
+  </section>
+
+  <footer>
+    資料來源：godfat 抽蛋模擬器，seed 3288448950 / last 874（＝抽完搖滾俏喵後的狀態）。
+    第五視圖與第四視圖的換算 <code>view5 A[n] = view4 A[n+46]</code> 已用 54 格交叉驗證，0 筆不符。
+    各池是否有原生必中，以 godfat 預設是否填滿 Guaranteed 欄判定。
+  </footer>
+</div>
