@@ -3,7 +3,7 @@
   <header>
     <div class="eyebrow">貓咪大戰爭 · seed 3288448950 · 第五視圖 · 2026-10-16</div>
     <h1>抽軌規劃盤</h1>
-    <p class="sub">搖滾俏喵已到手，位置重設為 1A。這一格在現在開著的每一個池都是超激格，而且今天起有三個池重新提供必中 11 連 —— 睽違一週又能換軌了。</p>
+    <p class="sub">搖滾俏喵已到手，位置重設為 1A。這一格在每個現役池都是超激格，而且今天起有三個池恢復必中 11 連。下面的「補名冊」請勾選你已經有的角色 —— 我手上的名冊只有 35 隻，你實際有 72 隻超激，補齊之後去重才會準。</p>
     <div class="stats" id="stats"></div>
   </header>
 
@@ -31,7 +31,7 @@
       <span><i style="background:var(--gold-soft); border-color:var(--gold-line)"></i>超激格</span>
       <span><i style="background:var(--rose-soft); border-color:var(--rose-line)"></i>reroll 牆</span>
       <span><i style="background:var(--jade-soft); border-color:var(--jade-line)"></i>目前位置</span>
-      <span>刪除線＝你已經有的</span>
+      <span>刪除線＝已確認持有</span>
     </div>
     <div class="refpick">
       <label for="refBan">顯示哪個池</label>
@@ -45,7 +45,16 @@
   </section>
 
   <section class="sec">
-    <div class="sec-head"><h2>已有的超激</h2><span class="hint" id="ownCount"></span></div>
+    <div class="sec-head"><h2>補名冊</h2>
+      <span class="hint" id="ckHint">點一下就是「我有」，再點取消。勾完不用告訴我，我會讀回來。</span></div>
+    <div class="warn" id="ckWarn" hidden></div>
+    <div class="ckbar"><span class="mono" id="ckCount"></span>
+      <button class="mini" type="button" id="ckClear">全部取消</button></div>
+    <div class="chips ck" id="check"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>已確認的超激</h2><span class="hint" id="ownCount"></span></div>
     <div class="chips" id="owned"></div>
   </section>
 

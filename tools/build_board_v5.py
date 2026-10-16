@@ -24,6 +24,21 @@ for key, f, label, period, guar, pay in SRC:
         'reroll': {s + n: [v[0], v[2]] for s in 'AB' for n, v in d['reroll'][s].items()},
     }
 out['hi'] = ['exclusive', 'uber', 'uber_fest', 'legend']
+# 現役池裡出現、但不在已確認名冊內的超激／傳說 —— 要請玩家勾選的清單
+HI_SET = set(out['hi'])
+seen = {}
+for key in out['order']:
+    pl = out['pools'][key]
+    for side in 'AB':
+        for i, (c, r) in enumerate(pl[side]):
+            if r in HI_SET:
+                seen.setdefault(c, set()).add(key)
+out['unknown'] = sorted(
+    ({'name': c, 'pools': sorted(ps)} for c, ps in seen.items() if c not in PP.OWNED),
+    key=lambda d: (-len(d['pools']), d['name']))
+out['roster'] = {'ubers': PP.ROSTER_TRUTH['超激レア'],
+                 'legends': PP.ROSTER_TRUTH['傳說レア'],
+                 'legendOwned': sorted(PP.LEGEND_OWNED)}
 out['owned'] = sorted(PP.OWNED)
 out['resources'] = PP.RESOURCES
 out['position'] = PP.POSITION

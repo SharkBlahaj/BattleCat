@@ -5,6 +5,7 @@ const D = __DATA__;
 const HI = new Set(D.hi), OWNED = new Set(D.owned);
 const POS = D.position, POSN = parseInt(POS), POSS = POS.slice(-1);
 let refBan = '1068', rowMax = 40, sel = null, doneOpen = false;
+let ticked = new Set(), dbRef = null, canWrite = true, saveTimer = null;
 
 const P = k => D.pools[k];
 const cell = (k, s, n) => P(k)[s][n-1];
@@ -19,7 +20,7 @@ function drawStats(){
     ['稀有卷', r['稀有卷'], '可推進 ' + r['稀有卷'] + ' 格'],
     ['黑金卷', r['黑金卷'], '傳說轉蛋單抽'],
     ['白金卷', r['白金卷'], '已用完'],
-    ['已有超激', OWNED.size + ' 隻', '這趟 +6'],
+    ['名冊', (OWNED.size + ticked.size) + ' / ' + D.roster.ubers, '已確認 ' + OWNED.size + '，勾選 ' + ticked.size],
     ['有必中的池', D.order.filter(k => P(k).guar).length + ' 個', '今天起恢復換軌', 1],
     ['下一個貓咪季', '10/30', '超級貓咪祭 1069'],
   ];
@@ -62,6 +63,49 @@ function drawPools(){
       <span class="cat">${esc(p.label)}</span>
       <span class="why">${p.guar ? '有必中 · ' : '單抽 · '}${esc(p.period)}</span></div>`;
   }).join('');
+}
+
+function drawCheck(){
+  const box = document.getElementById('check');
+  box.className = 'chips ck' + (canWrite ? '' : ' off');
+  box.innerHTML = D.unknown.map(u =>
+    `<button class="chip" type="button" role="checkbox" data-ck="${esc(u.name)}"
+      aria-pressed="${ticked.has(u.name)}"${canWrite ? '' : ' disabled'}>${esc(u.name)}<span class="po">${esc(u.pools.join(' '))}</span></button>`).join('');
+  document.getElementById('ckCount').textContent =
+    `已勾 ${ticked.size} / ${D.unknown.length} 隻　（加上已確認的 ${OWNED.size} 隻 = ${OWNED.size + ticked.size}，你說有 ${D.roster.ubers} 隻超激）`;
+}
+
+function saveTicks(){
+  if(!dbRef) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    dbRef.set({ names: [...ticked].sort(), updatedAt: new Date().toISOString() })
+      .catch(err => {
+        if(err && err.code === 'invalid_argument'){ canWrite = false; drawCheck(); warn('這個檢視沒有寫入權限，勾選不會被保存。'); }
+      });
+  }, 400);
+}
+
+function warn(msg){
+  const w = document.getElementById('ckWarn');
+  w.hidden = false;
+  w.innerHTML = `<h3>勾選沒有保存</h3><p>${esc(msg)}你還是可以直接在對話裡告訴我哪幾隻你有。</p>`;
+}
+
+async function initDb(){
+  let db = null;
+  try { db = await window.claude?.use?.('db') ?? null; } catch (e) { db = null; }
+  if(!db){ canWrite = false; drawCheck(); warn('這個檢視無法連到資料存放區。'); return; }
+  dbRef = db.doc('roster/owned');
+  dbRef.onSnapshot(snap => {
+    const d = snap.exists ? snap.data() : null;
+    const names = (d && Array.isArray(d.names)) ? d.names : [];
+    ticked = new Set(names.filter(n => D.unknown.some(u => u.name === n)));
+    drawCheck(); drawStats();
+  }, err => {
+    canWrite = false; drawCheck();
+    warn(err && err.code === 'revoked' ? '存取權限在開啟期間被收回。' : '連線中斷。');
+  });
 }
 
 function drawOwned(){
@@ -125,10 +169,21 @@ function drawLadder(){
   lad.appendChild(frag);
 }
 
-function render(){ drawStats(); drawDone(); drawNow(); drawPools(); drawOwned(); drawLadder(); }
+function render(){ drawStats(); drawDone(); drawNow(); drawPools(); drawCheck(); drawOwned(); drawLadder(); }
 
 document.addEventListener('click', e => {
   if(e.target.id === 'doneBtn'){ doneOpen = !doneOpen; drawDone(); return; }
+  if(e.target.id === 'ckClear'){
+    if(!canWrite || !ticked.size) return;
+    ticked = new Set(); drawCheck(); drawStats(); saveTicks(); return;
+  }
+  const ck = e.target.closest('[data-ck]');
+  if(ck){
+    if(!canWrite) return;
+    const nm = ck.dataset.ck;
+    ticked.has(nm) ? ticked.delete(nm) : ticked.add(nm);
+    drawCheck(); drawStats(); saveTicks(); return;
+  }
   const c = e.target.closest('.cell');
   if(c){ sel = (sel === c.dataset.pos) ? null : c.dataset.pos; drawLadder(); }
 });
@@ -140,4 +195,5 @@ document.addEventListener('change', e => {
 document.getElementById('refBan').innerHTML = D.order.map(k =>
   `<option value="${k}"${k === refBan ? ' selected' : ''}>${esc(k)} · ${esc(P(k).label)}${P(k).guar ? '（有必中）' : ''}</option>`).join('');
 render();
+initDb();
 </script>
