@@ -45,17 +45,18 @@ out['owned'] = sorted(PP.OWNED)
 out['resources'] = PP.RESOURCES
 out['position'] = PP.POSITION
 out['positionPending'] = PP.POSITION is None
-out['positionLast'] = PP.POSITION_LAST_KNOWN
+out['positionLast'] = getattr(PP, 'POSITION_LAST_KNOWN', None)
 out['positionNote'] = ('2026-10-20 戰國武神那發必中對不上任何起點：能一發同時拿到真田幸村和'
                        '成田甲斐的只有 9A 和 75A，但兩者都會帶到前田慶次，而你說這次沒抽到。'
                        '推測成田甲斐來自另一次單抽。需要你目前的 godfat 網址才能定位。')
+_era = H.ERAS[-1]
 out['done'] = {
-    'title': '搖滾俏喵（1077）',
-    'span': '第四視圖 2A → 47A',
-    'cost': H.ERAS[-1]['cost'],
-    'got': [g for st in H.ERAS[-1]['steps'] for g in st[4]],
+    'title': _era['era'] + '：' + _era['note'].split('。')[0],
+    'span': _era['note'],
+    'cost': _era['cost'],
+    'got': [g for st in _era['steps'] for g in st[4]],
     'steps': [{'pay': st[0], 'pool': st[1], 'from': st[2], 'to': st[3], 'got': st[4]}
-              for st in H.ERAS[-1]['steps']],
+              for st in _era['steps']],
 }
 json.dump(out, open('artifact/board_v5.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 print('bytes:', os.path.getsize('artifact/board_v5.json'))

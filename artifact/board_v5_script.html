@@ -31,6 +31,8 @@ function drawStats(){
 
 function drawDone(){
   const d = D.done;
+  const dh = document.getElementById('doneHint');
+  if(dh) dh.textContent = d.span;
   const steps = doneOpen ? d.steps : d.steps.filter(s => s.got.length);
   const body = steps.map(s => `<div class="rrow${s.got.length ? ' get' : ''}">
       <span class="pos">${esc(s.from)}</span>
@@ -47,11 +49,24 @@ function drawDone(){
 
 function drawNow(){
   const w = document.getElementById('posWarn');
-  if(!PENDING){ w.innerHTML = `<p>目前位置 <b>${esc(POS)}</b>。</p>`; return; }
-  w.innerHTML = `<h3>這發必中對不上表上任何起點</h3>`
-    + `<p>${esc(D.positionNote)}</p>`
-    + `<p>在這之前能確定的是：上次已知位置是 <b>${esc(D.positionLast)}</b>（10/16 抽完搖滾俏喵）。`
-    + `下面的梯圖仍以那個視角的編號呈現，可以用來比對各池在同一格給什麼，但「你在哪一格」要等網址確認。</p>`;
+  const g = document.getElementById('now');
+  if(PENDING){
+    w.hidden = false; g.hidden = true;
+    document.getElementById('posTitle').textContent = '位置待確認';
+    document.getElementById('posHint').textContent = '貼一個目前的 godfat 網址給我就能重新定位';
+    w.innerHTML = `<h3>這發必中對不上表上任何起點</h3><p>${esc(D.positionNote)}</p>`;
+    return;
+  }
+  w.hidden = true; g.hidden = false;
+  const hit = D.order.filter(k => HI.has(cell(k, POSS, POSN)[1]) && !own(cell(k, POSS, POSN)[0]));
+  document.getElementById('posHint').textContent =
+    hit.length ? `${hit.length} 個池在這格給你還沒有的超激` : '這一格每個池都是雜魚';
+  g.innerHTML = D.order.map(k => {
+    const [nm, rr] = cell(k, POSS, POSN);
+    return `<div class="dc${HI.has(rr) && !own(nm) ? ' hi' : ''}">
+      <div class="s">${esc(k)} · ${esc(P(k).pay)} · ${esc(P(k).period)}</div>
+      <div class="v"${own(nm) ? ' style="text-decoration:line-through;color:var(--ink-3)"' : ''}>${esc(nm)}</div></div>`;
+  }).join('');
 }
 
 function drawPools(){
