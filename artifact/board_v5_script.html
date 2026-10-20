@@ -184,7 +184,25 @@ function drawLadder(){
   lad.appendChild(frag);
 }
 
-function render(){ drawStats(); drawDone(); drawNow(); drawPools(); drawCheck(); drawOwned(); drawLadder(); }
+function drawRoute(){
+  const r = D.route;
+  if(!r) return;
+  document.getElementById('routeHint').textContent = r.summary;
+  document.getElementById('routeWarn').innerHTML =
+    `<h3>今天之內</h3><p>${esc(r.deadline)}。</p>`
+    + `<p>成本 罐頭 ${r.cost['罐頭']}、金卷 ${r.cost['稀有卷']}；做完還剩 金卷 ${r.left['稀有卷']}、黑金卷 ${r.left['黑金卷']}。</p>`;
+  document.getElementById('route').innerHTML = r.steps.map(st => {
+    const opts = st.opts.length
+      ? st.opts.map(o => `<span class="chip">${esc(o[0])} ${esc(o[1])}</span>`).join(' ')
+      : `<span style="color:var(--ink-3);font-size:12px">${esc(st.note)}</span>`;
+    return `<div class="rrow${st.opts.length ? ' get' : ''}" style="grid-template-columns:86px 150px 1fr">
+      <span class="pos">${esc(st.pos)}</span>
+      <span class="pay">${esc(st.pay)}</span>
+      <span class="cat">${opts}</span></div>`;
+  }).join('');
+}
+
+function render(){ drawRoute(); drawStats(); drawDone(); drawNow(); drawPools(); drawCheck(); drawOwned(); drawLadder(); }
 
 document.addEventListener('click', e => {
   if(e.target.id === 'doneBtn'){ doneOpen = !doneOpen; drawDone(); return; }
