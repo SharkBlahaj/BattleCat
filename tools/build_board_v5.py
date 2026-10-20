@@ -6,16 +6,18 @@ from data import player_profile as PP
 from data import history as H
 D = sys.argv[1]
 SRC = [
- ('1068', 'full_2026-10-16_1068.json', '鐵腕女孩東雲寺茜', '10/16–10/20', True,  '罐頭'),
- ('979',  'full_2026-10-16_979.json',  '革命軍隊鋼鐵戰團', '10/16–10/18', True,  '罐頭'),
- ('986',  'full_2026-10-16_986.json',  '傳說的不明貓一族', '10/16–10/18', True,  '罐頭'),
- ('1071', 'full_2026-10-16_1071.json', '白金轉蛋',        '10/16–',      False, '白金卷'),
- ('1072', 'full_2026-10-16_1072.json', '傳說轉蛋',        '10/16–',      False, '黑金卷'),
- ('1069', 'full_2026-10-30_1069.json', '超級貓咪祭',      '10/30–11/02', False, '罐頭'),
+ ('1043', 'full_2026-10-18_1043.json', '日本戰國時代武將',   '~10/20 今天最後一天', True,  '罐頭'),
+ ('1021', 'full_2026-10-18_1021.json', '電腦少女',           '~10/20 今天最後一天', True,  '罐頭'),
+ ('1070', 'full_2026-10-20_1070.json', '孤月騎士路諾斯',     '10/20–10/26',        False, '罐頭'),
+ ('1004', 'full_2026-10-20_1004.json', '宇宙盡頭的精靈',     '10/20–10/23',        False, '罐頭'),
+ ('947',  'full_2026-10-20_947.json',  '正義與黑暗的救世主', '10/20–10/23',        False, '罐頭'),
+ ('1071', 'full_2026-10-16_1071.json', '白金轉蛋',           '常駐',               False, '白金卷'),
+ ('1072', 'full_2026-10-16_1072.json', '傳說轉蛋',           '常駐',               False, '黑金卷'),
+ ('1069', 'full_2026-10-30_1069.json', '超級貓咪祭',         '10/30–11/02',        False, '罐頭'),
 ]
 out = {'pools': {}, 'order': [s[0] for s in SRC]}
 for key, f, label, period, guar, pay in SRC:
-    d = json.load(open(os.path.join(D, 'dl_after', f)))
+    d = json.load(open(os.path.join(D, 'dl1020', f)))
     out['pools'][key] = {
         'label': label, 'period': period, 'guar': guar, 'pay': pay,
         'A': [[d['res']['A'][str(n)][0], d['res']['A'][str(n)][1]] for n in range(1, 101)],
@@ -42,6 +44,11 @@ out['roster'] = {'ubers': PP.ROSTER_TRUTH['超激レア'],
 out['owned'] = sorted(PP.OWNED)
 out['resources'] = PP.RESOURCES
 out['position'] = PP.POSITION
+out['positionPending'] = PP.POSITION is None
+out['positionLast'] = PP.POSITION_LAST_KNOWN
+out['positionNote'] = ('2026-10-20 戰國武神那發必中對不上任何起點：能一發同時拿到真田幸村和'
+                       '成田甲斐的只有 9A 和 75A，但兩者都會帶到前田慶次，而你說這次沒抽到。'
+                       '推測成田甲斐來自另一次單抽。需要你目前的 godfat 網址才能定位。')
 out['done'] = {
     'title': '搖滾俏喵（1077）',
     'span': '第四視圖 2A → 47A',

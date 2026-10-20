@@ -3,8 +3,9 @@ const D = __DATA__;
 </script>
 <script>
 const HI = new Set(D.hi), OWNED = new Set(D.owned);
-const POS = D.position, POSN = parseInt(POS), POSS = POS.slice(-1);
-let refBan = '1068', rowMax = 40, sel = null, doneOpen = false;
+const PENDING = !!D.positionPending;
+const POS = D.position, POSN = PENDING ? null : parseInt(POS), POSS = PENDING ? null : POS.slice(-1);
+let refBan = D.order[0], rowMax = 40, sel = null, doneOpen = false;
 let ticked = new Set(), dbRef = null, canWrite = true, saveTimer = null;
 
 const P = k => D.pools[k];
@@ -15,14 +16,14 @@ const own = c => OWNED.has(c);
 function drawStats(){
   const r = D.resources;
   const rows = [
-    ['目前位置', POS, '上一抽 搖滾俏喵', 1],
-    ['罐頭', r['罐頭'], '夠打一發必中 11 連', 1],
+    ['目前位置', PENDING ? '待確認' : POS, PENDING ? '上次已知 ' + D.positionLast : '', PENDING ? 0 : 1],
+    ['罐頭', r['罐頭'], '扣掉今天那發必中前的數字', 0],
     ['稀有卷', r['稀有卷'], '可推進 ' + r['稀有卷'] + ' 格'],
     ['黑金卷', r['黑金卷'], '傳說轉蛋單抽'],
     ['白金卷', r['白金卷'], '已用完'],
     ['名冊', (OWNED.size + ticked.size) + ' / ' + D.roster.ubers, '已確認 ' + OWNED.size + '，勾選 ' + ticked.size],
-    ['有必中的池', D.order.filter(k => P(k).guar).length + ' 個', '今天起恢復換軌', 1],
-    ['下一個貓咪季', '10/30', '超級貓咪祭 1069'],
+    ['有必中的池', D.order.filter(k => P(k).guar).length + ' 個', '今天之後歸零', 1],
+    ['下一個貓咪季', '10/30', '超級貓咪祭 1069（無必中）'],
   ];
   document.getElementById('stats').innerHTML = rows.map(([k, v, n, hl]) =>
     `<div class="stat${hl ? ' hl' : ''}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
@@ -45,13 +46,12 @@ function drawDone(){
 }
 
 function drawNow(){
-  document.getElementById('now').innerHTML = D.order.map(k => {
-    const [nm, rr] = cell(k, POSS, POSN);
-    const live = P(k).period.indexOf('10/30') !== 0;
-    return `<div class="dc${HI.has(rr) && !own(nm) ? ' hi' : ''}">
-      <div class="s">${esc(k)} · ${esc(P(k).pay)}${live ? '' : ' · 尚未開始'}</div>
-      <div class="v"${own(nm) ? ' style="text-decoration:line-through;color:var(--ink-3)"' : ''}>${esc(nm)}</div></div>`;
-  }).join('');
+  const w = document.getElementById('posWarn');
+  if(!PENDING){ w.innerHTML = `<p>目前位置 <b>${esc(POS)}</b>。</p>`; return; }
+  w.innerHTML = `<h3>這發必中對不上表上任何起點</h3>`
+    + `<p>${esc(D.positionNote)}</p>`
+    + `<p>在這之前能確定的是：上次已知位置是 <b>${esc(D.positionLast)}</b>（10/16 抽完搖滾俏喵）。`
+    + `下面的梯圖仍以那個視角的編號呈現，可以用來比對各池在同一格給什麼，但「你在哪一格」要等網址確認。</p>`;
 }
 
 function drawPools(){
@@ -137,7 +137,7 @@ function drawLadder(){
       const [nm, rr] = cell(refBan, side, n);
       const b = document.createElement('button');
       b.type = 'button'; b.dataset.pos = side + n;
-      const here = (side === POSS && n === POSN);
+      const here = (!PENDING && side === POSS && n === POSN);
       b.className = 'cell' + (side === 'B' ? ' b' : '')
         + (HI.has(rr) ? ' goalcell' : '')
         + (p.reroll[side + n] ? ' walled' : '')
