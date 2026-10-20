@@ -1,0 +1,84 @@
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">貓咪大戰爭 · seed 3288448950 · 第五視圖 · 2026-10-20</div>
+    <h1>抽軌規劃盤</h1>
+    <p class="sub">位置 20A，名冊 72 隻，手上 15 張金卷 + 1500 罐頭。今天是 1043 和 1021 的最後一天，也是到 10/30 之前最後一次能打必中、能換軌的機會 —— 而 A 軌往前 26 格只有一個未持有的超激格，B 軌卻有三個。</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head"><h2>剛完成</h2>
+      <span class="hint" id="doneHint"></span></div>
+    <div class="route" id="done"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>今天的建議路線</h2>
+      <span class="hint" id="routeHint"></span></div>
+    <div class="warn" id="routeWarn"></div>
+    <div class="route" id="route"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2 id="posTitle">目前位置</h2>
+      <span class="hint" id="posHint"></span></div>
+    <div class="warn" id="posWarn" hidden></div>
+    <div class="dgrid now6" id="now"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>現在開著的池</h2>
+      <span class="hint">有必中才能換軌。1043 和 1021 今天收攤後，到 10/30 都沒有必中池</span></div>
+    <div class="route" id="pools"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>雙軌</h2><span class="hint">點任一格看每個池給什麼、必中落點在哪</span></div>
+    <div class="legend">
+      <span><i style="background:var(--gold-soft); border-color:var(--gold-line)"></i>超激格</span>
+      <span><i style="background:var(--rose-soft); border-color:var(--rose-line)"></i>reroll 牆</span>
+      <span><i style="background:var(--jade-soft); border-color:var(--jade-line)"></i>目前位置</span>
+      <span>刪除線＝已確認持有</span>
+    </div>
+    <div class="refpick">
+      <label for="refBan">顯示哪個池</label>
+      <select id="refBan"></select>
+      <label for="rowMax">顯示到</label>
+      <select id="rowMax"><option value="40">第 40 行</option><option value="100">第 100 行</option></select>
+    </div>
+    <div class="ladder" id="ladder">
+      <div class="hrow"><span>A 軌</span><span>行</span><span>B 軌</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>補名冊</h2>
+      <span class="hint" id="ckHint">上次勾的 31 隻已併入名冊，這裡只剩還沒確認的。點一下＝「我有」，我會讀回來。</span></div>
+    <div class="warn" id="ckWarn" hidden></div>
+    <div class="ckbar"><span class="mono" id="ckCount"></span>
+      <button class="mini" type="button" id="ckClear">全部取消</button></div>
+    <div class="chips ck" id="check"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>已確認的超激</h2><span class="hint" id="ownCount"></span></div>
+    <div class="chips" id="owned"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>機制</h2></div>
+    <div class="mech">
+      <div><h3>共用位置</h3><p>每一抽都推進同一個計數器，不管抽的是哪個池。八個池是同一條時間軸上的選擇，不是八筆預算。</p></div>
+      <div><h3>必中 11 連</h3><p>吃 21 格、必定翻軌：<code>A[n] → B[n+10]</code>、<code>B[n] → A[n+11]</code>。沒有必中的池只能單抽或普通 11 連，同軌前進、換不了軌。</p></div>
+      <div><h3>重複 reroll</h3><p>當這一格要給的貓等於上一抽抽到的貓，系統重抽、多吃一格並換軌：<code>A[n] → B[n+1]</code>。只看上一抽的結果，所以換池抽前一格就能拆掉。</p></div>
+      <div><h3>牆會汙染必中落點</h3><p>牆在第 k 格時，起點落在 <code>[k-9, k-1]</code> 的那 9 發必中會多吃一格、落點偏離一格。已用 1068／979／986 三個池各自獨立驗證。</p></div>
+    </div>
+  </section>
+
+  <footer>
+    資料來源：godfat 抽蛋模擬器，seed 3288448950 / last 874（＝抽完搖滾俏喵後的狀態）。
+    第五視圖與第四視圖的換算 <code>view5 A[n] = view4 A[n+46]</code> 已用 54 格交叉驗證，0 筆不符。
+    各池是否有原生必中，以 godfat 預設是否填滿 Guaranteed 欄判定。
+  </footer>
+</div>

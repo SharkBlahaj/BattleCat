@@ -1,0 +1,232 @@
+<script>
+const D = __DATA__;
+</script>
+<script>
+const HI = new Set(D.hi), OWNED = new Set(D.owned);
+const PENDING = !!D.positionPending;
+const POS = D.position, POSN = PENDING ? null : parseInt(POS), POSS = PENDING ? null : POS.slice(-1);
+let refBan = D.order[0], rowMax = 40, sel = null, doneOpen = false;
+let ticked = new Set(), dbRef = null, canWrite = true, saveTimer = null;
+
+const P = k => D.pools[k];
+const cell = (k, s, n) => P(k)[s][n-1];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const own = c => OWNED.has(c);
+
+function drawStats(){
+  const r = D.resources;
+  const rows = [
+    ['目前位置', PENDING ? '待確認' : POS, PENDING ? '上次已知 ' + D.positionLast : '', PENDING ? 0 : 1],
+    ['罐頭', r['罐頭'], '扣掉今天那發必中前的數字', 0],
+    ['稀有卷', r['稀有卷'], '可推進 ' + r['稀有卷'] + ' 格'],
+    ['黑金卷', r['黑金卷'], '傳說轉蛋單抽'],
+    ['白金卷', r['白金卷'], '已用完'],
+    ['名冊', (OWNED.size + ticked.size) + ' / ' + D.roster.ubers, '已確認 ' + OWNED.size + '，勾選 ' + ticked.size],
+    ['有必中的池', D.order.filter(k => P(k).guar).length + ' 個', '今天之後歸零', 1],
+    ['下一個貓咪季', '10/30', '超級貓咪祭 1069（無必中）'],
+  ];
+  document.getElementById('stats').innerHTML = rows.map(([k, v, n, hl]) =>
+    `<div class="stat${hl ? ' hl' : ''}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
+}
+
+function drawDone(){
+  const d = D.done;
+  const dh = document.getElementById('doneHint');
+  if(dh) dh.textContent = d.span;
+  const steps = doneOpen ? d.steps : d.steps.filter(s => s.got.length);
+  const body = steps.map(s => `<div class="rrow${s.got.length ? ' get' : ''}">
+      <span class="pos">${esc(s.from)}</span>
+      <span class="pay">${esc(s.pay)}</span>
+      <span class="cat">${s.got.length ? '<b style="color:var(--gold)">' + s.got.map(esc).join('、') + '</b>' : '<span style="color:var(--ink-3)">推進到 ' + esc(s.to) + '</span>'}</span>
+      <span class="why">${esc(s.pool)}</span></div>`).join('');
+  const c = d.cost;
+  document.getElementById('done').innerHTML = body
+    + `<div class="rrow goal"><span class="pos">合計</span><span class="pay"></span>
+       <span class="cat"><b>收 ${d.got.length} 隻超激</b></span>
+       <span class="why">罐頭 ${c['罐頭']} · 卷 ${c['稀有卷']}+${c['黑金卷']}</span></div>`
+    + `<button class="fold" type="button" id="doneBtn">${doneOpen ? '只顯示有收穫的步驟' : '展開全部 ' + d.steps.length + ' 步'}</button>`;
+}
+
+function drawNow(){
+  const w = document.getElementById('posWarn');
+  const g = document.getElementById('now');
+  if(PENDING){
+    w.hidden = false; g.hidden = true;
+    document.getElementById('posTitle').textContent = '位置待確認';
+    document.getElementById('posHint').textContent = '貼一個目前的 godfat 網址給我就能重新定位';
+    w.innerHTML = `<h3>這發必中對不上表上任何起點</h3><p>${esc(D.positionNote)}</p>`;
+    return;
+  }
+  w.hidden = true; g.hidden = false;
+  const hit = D.order.filter(k => HI.has(cell(k, POSS, POSN)[1]) && !own(cell(k, POSS, POSN)[0]));
+  document.getElementById('posHint').textContent =
+    hit.length ? `${hit.length} 個池在這格給你還沒有的超激` : '這一格每個池都是雜魚';
+  g.innerHTML = D.order.map(k => {
+    const [nm, rr] = cell(k, POSS, POSN);
+    return `<div class="dc${HI.has(rr) && !own(nm) ? ' hi' : ''}">
+      <div class="s">${esc(k)} · ${esc(P(k).pay)} · ${esc(P(k).period)}</div>
+      <div class="v"${own(nm) ? ' style="text-decoration:line-through;color:var(--ink-3)"' : ''}>${esc(nm)}</div></div>`;
+  }).join('');
+}
+
+function drawPools(){
+  document.getElementById('pools').innerHTML = D.order.map(k => {
+    const p = P(k);
+    return `<div class="rrow${p.guar ? ' get' : ''}">
+      <span class="pos">${esc(k)}</span>
+      <span class="pay">${esc(p.pay)}</span>
+      <span class="cat">${esc(p.label)}</span>
+      <span class="why">${p.guar ? '有必中 · ' : '單抽 · '}${esc(p.period)}</span></div>`;
+  }).join('');
+}
+
+function drawCheck(){
+  const box = document.getElementById('check');
+  box.className = 'chips ck' + (canWrite ? '' : ' off');
+  box.innerHTML = D.unknown.map(u =>
+    `<button class="chip" type="button" role="checkbox" data-ck="${esc(u.name)}"
+      aria-pressed="${ticked.has(u.name)}"${canWrite ? '' : ' disabled'}>${esc(u.name)}<span class="po">${esc(u.pools.join(' '))}</span></button>`).join('');
+  document.getElementById('ckCount').textContent =
+    `已勾 ${ticked.size} / ${D.unknown.length} 隻　（加上已確認的 ${OWNED.size} 隻 = ${OWNED.size + ticked.size}，你說有 ${D.roster.ubers} 隻超激）`;
+}
+
+function saveTicks(){
+  if(!dbRef) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    dbRef.set({ names: [...ticked].sort(), updatedAt: new Date().toISOString() })
+      .catch(err => {
+        if(err && err.code === 'invalid_argument'){ canWrite = false; drawCheck(); warn('這個檢視沒有寫入權限，勾選不會被保存。'); }
+      });
+  }, 400);
+}
+
+function warn(msg){
+  const w = document.getElementById('ckWarn');
+  w.hidden = false;
+  w.innerHTML = `<h3>勾選沒有保存</h3><p>${esc(msg)}你還是可以直接在對話裡告訴我哪幾隻你有。</p>`;
+}
+
+async function initDb(){
+  let db = null;
+  try { db = await window.claude?.use?.('db') ?? null; } catch (e) { db = null; }
+  if(!db){ canWrite = false; drawCheck(); warn('這個檢視無法連到資料存放區。'); return; }
+  dbRef = db.doc('roster/owned');
+  dbRef.onSnapshot(snap => {
+    const d = snap.exists ? snap.data() : null;
+    const names = (d && Array.isArray(d.names)) ? d.names : [];
+    ticked = new Set(names.filter(n => D.unknown.some(u => u.name === n)));
+    drawCheck(); drawStats();
+  }, err => {
+    canWrite = false; drawCheck();
+    warn(err && err.code === 'revoked' ? '存取權限在開啟期間被收回。' : '連線中斷。');
+  });
+}
+
+function drawOwned(){
+  const list = D.done.got;
+  document.getElementById('ownCount').textContent = OWNED.size + ' 隻，綠色是這趟新收的';
+  document.getElementById('owned').innerHTML = D.owned.map(c =>
+    `<span class="chip${list.includes(c) ? ' new' : ''}">${esc(c)}</span>`).join('');
+}
+
+function drawLadder(){
+  const p = P(refBan);
+  const lad = document.getElementById('ladder');
+  const head = lad.firstElementChild;
+  lad.innerHTML = ''; lad.appendChild(head);
+  const frag = document.createDocumentFragment();
+  for(let n = 1; n <= rowMax; n++){
+    const row = document.createElement('div'); row.className = 'row';
+    for(const side of ['A', 'rail', 'B']){
+      if(side === 'rail'){
+        const rail = document.createElement('div'); rail.className = 'rail';
+        const wallA = p.reroll['A' + n], wallB = p.reroll['B' + n];
+        let svg = '';
+        if(wallA) svg += '<path d="M10 21 L40 32" stroke="var(--rose)" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>';
+        if(wallB) svg += '<path d="M40 21 L10 32" stroke="var(--rose)" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>';
+        rail.innerHTML = `<svg viewBox="0 0 50 42" preserveAspectRatio="none">${svg}</svg><span class="num">${n}</span>`;
+        row.appendChild(rail);
+        continue;
+      }
+      const [nm, rr] = cell(refBan, side, n);
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.pos = side + n;
+      const here = (!PENDING && side === POSS && n === POSN);
+      b.className = 'cell' + (side === 'B' ? ' b' : '')
+        + (HI.has(rr) ? ' goalcell' : '')
+        + (p.reroll[side + n] ? ' walled' : '')
+        + (here ? ' picked' : '');
+      const g = p.G[side + n];
+      b.innerHTML = `<div class="cr${HI.has(rr) ? ' hi' : ''}"${own(nm) ? ' style="text-decoration:line-through;opacity:.55"' : ''}>${esc(nm)}</div>`
+        + `<div class="cn">${here ? '← 你在這' : (g ? '必中 → ' + esc(g[1]) : '')}</div>`;
+      row.appendChild(b);
+    }
+    frag.appendChild(row);
+    if(sel === 'A' + n || sel === 'B' + n){
+      const side = sel[0];
+      const d = document.createElement('div'); d.className = 'detail';
+      const cells = D.order.map(k => {
+        const [nm2, rr2] = cell(k, side, n);
+        const g2 = P(k).G[side + n];
+        return `<div class="dc${HI.has(rr2) && !own(nm2) ? ' hi' : ''}">
+          <div class="s">${esc(k)} · ${esc(P(k).label)}</div>
+          <div class="v"${own(nm2) ? ' style="text-decoration:line-through;color:var(--ink-3)"' : ''}>${esc(nm2)}</div>
+          ${g2 ? `<div class="s">必中 ${esc(g2[0])} → ${esc(g2[1])}</div>` : ''}</div>`;
+      }).join('');
+      const w = P(refBan).reroll[side + n];
+      d.innerHTML = `<div class="dtop"><span class="dpos">${n}${side}</span>`
+        + (w ? `<span class="dnote">這格會重複 reroll → 換軌到 ${esc(w[1])}，重抽成 ${esc(w[0])}</span>` : '')
+        + `</div><div class="dgrid">${cells}</div>`;
+      frag.appendChild(d);
+    }
+  }
+  lad.appendChild(frag);
+}
+
+function drawRoute(){
+  const r = D.route;
+  if(!r) return;
+  document.getElementById('routeHint').textContent = r.summary;
+  document.getElementById('routeWarn').innerHTML =
+    `<h3>今天之內</h3><p>${esc(r.deadline)}。</p>`
+    + `<p>成本 罐頭 ${r.cost['罐頭']}、金卷 ${r.cost['稀有卷']}；做完還剩 金卷 ${r.left['稀有卷']}、黑金卷 ${r.left['黑金卷']}。</p>`;
+  document.getElementById('route').innerHTML = r.steps.map(st => {
+    const opts = st.opts.length
+      ? st.opts.map(o => `<span class="chip">${esc(o[0])} ${esc(o[1])}</span>`).join(' ')
+      : `<span style="color:var(--ink-3);font-size:12px">${esc(st.note)}</span>`;
+    return `<div class="rrow${st.opts.length ? ' get' : ''}" style="grid-template-columns:86px 150px 1fr">
+      <span class="pos">${esc(st.pos)}</span>
+      <span class="pay">${esc(st.pay)}</span>
+      <span class="cat">${opts}</span></div>`;
+  }).join('');
+}
+
+function render(){ drawRoute(); drawStats(); drawDone(); drawNow(); drawPools(); drawCheck(); drawOwned(); drawLadder(); }
+
+document.addEventListener('click', e => {
+  if(e.target.id === 'doneBtn'){ doneOpen = !doneOpen; drawDone(); return; }
+  if(e.target.id === 'ckClear'){
+    if(!canWrite || !ticked.size) return;
+    ticked = new Set(); drawCheck(); drawStats(); saveTicks(); return;
+  }
+  const ck = e.target.closest('[data-ck]');
+  if(ck){
+    if(!canWrite) return;
+    const nm = ck.dataset.ck;
+    ticked.has(nm) ? ticked.delete(nm) : ticked.add(nm);
+    drawCheck(); drawStats(); saveTicks(); return;
+  }
+  const c = e.target.closest('.cell');
+  if(c){ sel = (sel === c.dataset.pos) ? null : c.dataset.pos; drawLadder(); }
+});
+document.addEventListener('change', e => {
+  if(e.target.id === 'refBan'){ refBan = e.target.value; sel = null; drawLadder(); }
+  if(e.target.id === 'rowMax'){ rowMax = +e.target.value; drawLadder(); }
+});
+
+document.getElementById('refBan').innerHTML = D.order.map(k =>
+  `<option value="${k}"${k === refBan ? ' selected' : ''}>${esc(k)} · ${esc(P(k).label)}${P(k).guar ? '（有必中）' : ''}</option>`).join('');
+render();
+initDb();
+</script>
