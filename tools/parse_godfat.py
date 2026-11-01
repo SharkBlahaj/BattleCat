@@ -12,7 +12,7 @@ ul = re.search(r'<div class="seed">(.*?)</div>', src, re.S)
 # every cat cell: onclick="pick('NA')" (no trailing X)
 CELL = re.compile(
     r'<td\s+rowspan="1"\s+class="position (cat|score)([^"]*)"\s*'
-    r'onclick="pick\(\'(\d+)([AB])(X?)\'\)"\s*>(.*?)</td>', re.S)
+    r'onclick="pick\(\'(\d+)([AB])(X?)\'[^"]*\)"\s*>(.*?)</td>', re.S)
 
 rows = {'A': {}, 'B': {}}
 for m in CELL.finditer(src):

@@ -1,7 +1,7 @@
 import sys, re
 s = open(sys.argv[1], encoding='utf-8').read()
 CELL = re.compile(r'<td\s+rowspan="\d+"\s+class="position (cat|score)([^"]*)"\s*'
-                  r'onclick="pick\(\'(\d+)([AB])(G|R|)(X?)\'\)"\s*>(.*?)</td>', re.S)
+                  r'onclick="pick\(\'(\d+)([AB])(G|R|)(X?)\'[^"]*\)"\s*>(.*?)</td>', re.S)
 want = set(sys.argv[2:])
 for m in CELL.finditer(s):
     kind, cls, n, side, suf, isX, body = m.groups()

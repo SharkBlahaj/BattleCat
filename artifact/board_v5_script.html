@@ -186,7 +186,9 @@ function drawLadder(){
 
 function drawRoute(){
   const r = D.route;
-  if(!r) return;
+  const sec = document.getElementById('routeSec');
+  if(!r){ if(sec) sec.hidden = true; return; }
+  if(sec) sec.hidden = false;
   document.getElementById('routeHint').textContent = r.summary;
   document.getElementById('routeWarn').innerHTML =
     `<h3>今天之內</h3><p>${esc(r.deadline)}。</p>`

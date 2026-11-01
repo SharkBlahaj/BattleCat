@@ -2,7 +2,7 @@ import sys, re, json
 html, out, modname, title = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 s = open(html, encoding='utf-8').read()
 CELL = re.compile(r'<td\s+rowspan="1"\s+class="position (cat|score)([^"]*)"\s*'
-                  r'onclick="pick\(\'(\d+)([AB])(X?)\'\)"\s*>(.*?)</td>', re.S)
+                  r'onclick="pick\(\'(\d+)([AB])(X?)\'[^"]*\)"\s*>(.*?)</td>', re.S)
 raw = {'A': {}, 'B': {}}
 for m in CELL.finditer(s):
     k, cls, n, sd, x, body = m.groups()

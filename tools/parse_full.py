@@ -2,7 +2,7 @@ import sys, re, json
 s = open(sys.argv[1], encoding='utf-8').read()
 CELL = re.compile(
     r'<td\s+rowspan="\d+"\s+class="position (cat|score)([^"]*)"\s*'
-    r'onclick="pick\(\'(\d+)([AB])(G|R|)(X?)\'\)"\s*>(.*?)</td>', re.S)
+    r'onclick="pick\(\'(\d+)([AB])(G|R|)(X?)\'[^"]*\)"\s*>(.*?)</td>', re.S)
 out = {'res': {'A': {}, 'B': {}}, 'reroll': {'A': {}, 'B': {}}, 'guar': {'A': {}, 'B': {}}}
 for m in CELL.finditer(s):
     kind, cls, num, side, suf, isX, body = m.groups()

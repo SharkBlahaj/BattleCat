@@ -6,7 +6,7 @@ T = {s: {int(k): v for k, v in new[s].items()} for s in 'AB'}
 import re
 s = open(sys.argv[2], encoding='utf-8').read()
 CELL = re.compile(r'<td\s+rowspan="1"\s+class="position (cat|score)([^"]*)"\s*'
-                  r'onclick="pick\(\'(\d+)([AB])(X?)\'\)"\s*>(.*?)</td>', re.S)
+                  r'onclick="pick\(\'(\d+)([AB])(X?)\'[^"]*\)"\s*>(.*?)</td>', re.S)
 raw = {'A': {}, 'B': {}}
 for m in CELL.finditer(s):
     k, cls, n, sd, x, body = m.groups()

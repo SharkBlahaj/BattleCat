@@ -1,7 +1,7 @@
 import sys, re, json
 s = open(sys.argv[1], encoding='utf-8').read()
 CELL = re.compile(r'<td\s+rowspan="\d+"\s+class="position (cat)([^"]*)"\s*'
-                  r'onclick="pick\(\'(\d+)([AB])(G|R|)(X?)\'\)"\s*>(.*?)</td>', re.S)
+                  r'onclick="pick\(\'(\d+)([AB])(G|R|)(X?)\'[^"]*\)"\s*>(.*?)</td>', re.S)
 ids = {}
 for m in CELL.finditer(s):
     _, cls, n, side, suf, isX, body = m.groups()
