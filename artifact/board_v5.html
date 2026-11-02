@@ -1,0 +1,511 @@
+<title>抽軌規劃盤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* 版面：單欄 1040px，狀態列→機制警示→方案→逐格路線→雙軌梯圖 */
+:root{
+  --bg:#ECEEF3; --surface:#FFFFFF; --surface-2:#F5F6FA; --surface-3:#E4E7EF;
+  --ink:#171A24; --ink-2:#5B6178; --ink-3:#868CA1;
+  --line:#D3D7E2; --line-strong:#B6BCCC;
+  --gold:#8C6205; --gold-soft:#F6E8C4; --gold-line:#DFC182;
+  --rose:#A42A4D; --rose-soft:#F9DCE3; --rose-line:#E7B3C0;
+  --jade:#136B52; --jade-soft:#D7EDE5; --jade-line:#9ACBBA;
+  --violet:#5B3C93; --violet-soft:#E7E0F5; --violet-line:#BCA8E0;
+  --trackA:#17647F; --trackB:#71428A;
+  --shadow:0 1px 2px rgba(23,26,36,.06), 0 8px 24px -12px rgba(23,26,36,.18);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --jade:#6CCBAB; --jade-soft:#123028; --jade-line:#2C5D4D;
+  --violet:#B79BE8; --violet-soft:#241A3A; --violet-line:#4A3A6E;
+  --trackA:#66BAD4; --trackB:#C293D7;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --jade:#6CCBAB; --jade-soft:#123028; --jade-line:#2C5D4D;
+  --violet:#B79BE8; --violet-soft:#241A3A; --violet-line:#4A3A6E;
+  --trackA:#66BAD4; --trackB:#C293D7;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); margin:0; font-size:15px; line-height:1.6;
+  font-family:"Noto Sans TC",system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px; margin:0 auto; padding-inline:16px; padding-block:28px 72px}
+h1,h2,h3{font-family:"Archivo","Noto Sans TC",system-ui,sans-serif; margin:0; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-3); margin-bottom:10px}
+h1{font-size:clamp(26px,5.4vw,38px); font-weight:800; letter-spacing:-.02em; line-height:1.15}
+.sub{color:var(--ink-2); margin-top:10px; max-width:62ch; font-size:14.5px}
+
+.stats{display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
+  background:var(--line); border:1px solid var(--line); margin-top:22px}
+@media (min-width:560px){ .stats{grid-template-columns:repeat(4,1fr)} }
+.stat{background:var(--surface); padding:11px 13px; min-width:0}
+.stat .k{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--ink-3)}
+.stat .v{font-family:"IBM Plex Mono",monospace; font-size:19px; font-weight:600; margin-top:2px;
+  font-variant-numeric:tabular-nums}
+.stat .n{font-size:11.5px; color:var(--ink-3)}
+.stat.hl .v{color:var(--jade)}
+
+.sec{margin-top:40px}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:14px; flex-wrap:wrap}
+.sec-head h2{font-size:15px; font-weight:700}
+.sec-head .hint{font-size:12.5px; color:var(--ink-3)}
+
+.warn{border:1px solid var(--rose-line); background:var(--rose-soft); padding:15px 17px}
+.warn h3{font-size:13.5px; font-weight:700; color:var(--rose); margin-bottom:7px}
+.warn p{margin:0 0 8px; font-size:13.5px; color:var(--ink); line-height:1.65}
+.warn p:last-child{margin-bottom:0}
+.warn code{font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  background:var(--surface); padding:1px 5px; border-radius:2px}
+
+.chips{display:flex; flex-wrap:wrap; gap:5px}
+.chip{font-family:"IBM Plex Mono",monospace; font-size:11.5px; padding:3px 8px; border-radius:2px;
+  border:1px solid var(--line); background:var(--surface-2); color:var(--ink-2)}
+.chip.new{background:var(--jade-soft); color:var(--jade); border-color:var(--jade-line); font-weight:600}
+.chip.tgt{background:var(--rose-soft); color:var(--rose); border-color:var(--rose-line); font-weight:700}
+.chip.leg{background:var(--violet-soft); color:var(--violet); border-color:var(--violet-line); font-weight:600}
+
+.plans{display:grid; grid-template-columns:repeat(auto-fit,minmax(214px,1fr)); gap:10px}
+.pcard{all:unset; cursor:pointer; display:block; background:var(--surface);
+  border:1px solid var(--line); padding:13px 15px; transition:border-color .12s}
+.pcard:hover{border-color:var(--line-strong)}
+.pcard:focus-visible{outline:2px solid var(--trackA); outline-offset:2px}
+.pcard[aria-pressed="true"]{border-color:var(--ink)}
+.ptop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.pn{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px}
+.pf{font-family:"Archivo","Noto Sans TC",sans-serif; font-weight:700; font-size:14px; color:var(--violet)}
+.pb{font-size:12.5px; color:var(--ink-2); margin-top:7px; line-height:1.5}
+
+.route{border:1px solid var(--line); background:var(--surface); overflow-x:auto}
+.rrow{display:grid; grid-template-columns:52px 86px 1fr 150px; gap:10px; padding:7px 14px;
+  border-top:1px solid var(--line); align-items:center; font-size:13px; min-width:460px}
+.rrow:first-child{border-top:none}
+.rrow.wall{background:var(--rose-soft)}
+.rrow.get{background:var(--jade-soft)}
+.rrow.goal{background:var(--gold-soft)}
+.rrow .pos{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:12.5px}
+.rrow .pay{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2)}
+.rrow .cat{min-width:0}
+.rrow .cat b{font-weight:700}
+.rrow .why{font-size:11.5px; color:var(--ink-3); text-align:right}
+.rrow select{font:inherit; font-size:12px; padding:3px 5px; background:var(--surface-2);
+  color:var(--ink); border:1px solid var(--line); border-radius:2px; max-width:100%}
+.fold{all:unset; cursor:pointer; display:block; width:100%; padding:7px 14px; text-align:center;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3);
+  background:var(--surface-2); border-top:1px solid var(--line)}
+.fold:hover{color:var(--ink)}
+.fold:focus-visible{outline:2px solid var(--trackA); outline-offset:-2px}
+
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-bottom:12px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px;
+  vertical-align:-1px; border:1px solid var(--line-strong)}
+.refpick{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+.refpick select{font:inherit; font-size:12px; padding:4px 6px; background:var(--surface-2);
+  color:var(--ink); border:1px solid var(--line); border-radius:2px}
+.ladder{border-top:1px solid var(--line)}
+.hrow,.row{display:grid; grid-template-columns:1fr 50px 1fr}
+.hrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-3); padding:8px 0; position:sticky;
+  top:env(safe-area-inset-top,0px); background:var(--bg); z-index:5; border-bottom:1px solid var(--line)}
+.hrow span:first-child{color:var(--trackA); padding-left:11px}
+.hrow span:last-child{color:var(--trackB); text-align:right; padding-right:11px}
+.hrow span:nth-child(2){text-align:center; letter-spacing:.06em}
+.rail{position:relative; display:flex; align-items:center; justify-content:center;
+  font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3);
+  border-inline:1px solid var(--line); background:var(--surface-2)}
+.rail svg{position:absolute; inset:0; width:100%; height:100%; overflow:visible}
+.rail .num{position:relative; z-index:1; background:var(--surface-2); padding:0 2px}
+.cell{all:unset; cursor:pointer; display:block; padding:5px 11px; height:42px; overflow:hidden;
+  border-bottom:1px solid var(--line); min-width:0}
+.cell.b{text-align:right}
+.cell:hover{background:var(--surface-3)}
+.cell:focus-visible{outline:2px solid var(--trackA); outline-offset:-2px}
+.cell.on{border-left:3px solid var(--trackA)}
+.cell.off .cr{color:var(--ink-3)}
+.cell.off .cn{opacity:.55}
+.cell.walled{background:var(--rose-soft)}
+.cell.picked{background:var(--jade-soft)}
+.cell.goalcell{background:var(--gold-soft)}
+.cr{font-size:12.5px; font-weight:500; line-height:1.3; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+.cr.hi{color:var(--gold); font-weight:700}
+.cr.tgt{color:var(--rose); font-weight:700}
+.cn{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3); margin-top:1px}
+.detail{grid-column:1/-1; background:var(--surface); border-bottom:1px solid var(--line);
+  padding:13px 15px; box-shadow:var(--shadow)}
+.dtop{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; margin-bottom:9px}
+.dpos{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:16px}
+.dnote{font-size:12.5px; color:var(--ink-2)}
+.dgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(172px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line)}
+.dc{background:var(--surface); padding:7px 10px; min-width:0}
+.dc.hi{background:var(--gold-soft)}
+.dc .s{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3)}
+.dc .v{font-size:12.5px; line-height:1.35}
+
+.mech{display:grid; grid-template-columns:repeat(auto-fit,minmax(236px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line)}
+.mech div{background:var(--surface); padding:14px 15px; min-width:0}
+.mech h3{font-size:13px; font-weight:700; margin-bottom:6px}
+.mech p{margin:0; font-size:13px; color:var(--ink-2); line-height:1.6}
+.mech code{font-family:"IBM Plex Mono",monospace; font-size:12px;
+  background:var(--surface-2); padding:1px 4px; border-radius:2px}
+footer{margin-top:44px; padding-top:18px; border-top:1px solid var(--line);
+  font-size:12px; color:var(--ink-3); line-height:1.7}
+@media (max-width:620px){
+  .row,.hrow{grid-template-columns:1fr 38px 1fr}
+  .cell{padding:5px 8px}
+  .cr{font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.now6{grid-template-columns:repeat(2,1fr)}
+@media (min-width:820px){ .now6{grid-template-columns:repeat(4,1fr)} }
+.rrow .why{white-space:nowrap}
+@media (max-width:620px){ .rrow .why{white-space:normal} }
+.ckbar{display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap}
+.mini{all:unset; cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+  color:var(--ink-2); border:1px solid var(--line); background:var(--surface-2); padding:3px 9px}
+.mini:hover{border-color:var(--line-strong); color:var(--ink)}
+.mini:focus-visible{outline:2px solid var(--trackA); outline-offset:2px}
+.ck .chip{cursor:pointer; user-select:none}
+.ck .chip:hover{border-color:var(--line-strong)}
+.ck .chip[aria-pressed="true"]{background:var(--jade-soft); color:var(--jade);
+  border-color:var(--jade-line); font-weight:600}
+.ck .chip:focus-visible{outline:2px solid var(--trackA); outline-offset:2px}
+.ck .chip .po{opacity:.55; font-size:10px; margin-left:4px}
+.ck.off .chip{cursor:default; opacity:.55}
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">貓咪大戰爭 · seed 3288448950 · 第五視圖 · 2026-11-01</div>
+    <h1>抽軌規劃盤</h1>
+    <p class="sub">位置 24A（23A 抽到黃金貓之後），名冊 72 隻，手上 11 張金卷 + 1500 罐頭 + 1 張黑金卷。目前開著與即將開的池全部沒有必中，所以換不了軌；從 24A 往前，A 軌要走到 40A 才有下一個你沒有的超激。</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head"><h2>剛完成</h2>
+      <span class="hint" id="doneHint"></span></div>
+    <div class="route" id="done"></div>
+  </section>
+
+  <section class="sec" id="routeSec" hidden>
+    <div class="sec-head"><h2>建議路線</h2>
+      <span class="hint" id="routeHint"></span></div>
+    <div class="warn" id="routeWarn"></div>
+    <div class="route" id="route"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2 id="posTitle">目前位置</h2>
+      <span class="hint" id="posHint"></span></div>
+    <div class="warn" id="posWarn" hidden></div>
+    <div class="dgrid now6" id="now"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>現在開著的池</h2>
+      <span class="hint">目前沒有任何池提供必中 —— 換不了軌，只能在 A 軌單抽前進</span></div>
+    <div class="route" id="pools"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>雙軌</h2><span class="hint">點任一格看每個池給什麼、必中落點在哪</span></div>
+    <div class="legend">
+      <span><i style="background:var(--gold-soft); border-color:var(--gold-line)"></i>超激格</span>
+      <span><i style="background:var(--rose-soft); border-color:var(--rose-line)"></i>reroll 牆</span>
+      <span><i style="background:var(--jade-soft); border-color:var(--jade-line)"></i>目前位置</span>
+      <span>刪除線＝已確認持有</span>
+    </div>
+    <div class="refpick">
+      <label for="refBan">顯示哪個池</label>
+      <select id="refBan"></select>
+      <label for="rowMax">顯示到</label>
+      <select id="rowMax"><option value="40">第 40 行</option><option value="100">第 100 行</option></select>
+    </div>
+    <div class="ladder" id="ladder">
+      <div class="hrow"><span>A 軌</span><span>行</span><span>B 軌</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>補名冊</h2>
+      <span class="hint" id="ckHint">上次勾的 31 隻已併入名冊，這裡只剩還沒確認的。點一下＝「我有」，我會讀回來。</span></div>
+    <div class="warn" id="ckWarn" hidden></div>
+    <div class="ckbar"><span class="mono" id="ckCount"></span>
+      <button class="mini" type="button" id="ckClear">全部取消</button></div>
+    <div class="chips ck" id="check"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>已確認的超激</h2><span class="hint" id="ownCount"></span></div>
+    <div class="chips" id="owned"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>機制</h2></div>
+    <div class="mech">
+      <div><h3>共用位置</h3><p>每一抽都推進同一個計數器，不管抽的是哪個池。八個池是同一條時間軸上的選擇，不是八筆預算。</p></div>
+      <div><h3>必中 11 連</h3><p>吃 21 格、必定翻軌：<code>A[n] → B[n+10]</code>、<code>B[n] → A[n+11]</code>。沒有必中的池只能單抽或普通 11 連，同軌前進、換不了軌。</p></div>
+      <div><h3>重複 reroll</h3><p>當這一格要給的貓等於上一抽抽到的貓，系統重抽、多吃一格並換軌：<code>A[n] → B[n+1]</code>。只看上一抽的結果，所以換池抽前一格就能拆掉。</p></div>
+      <div><h3>牆會汙染必中落點</h3><p>牆在第 k 格時，起點落在 <code>[k-9, k-1]</code> 的那 9 發必中會多吃一格、落點偏離一格。已用 1068／979／986 三個池各自獨立驗證。</p></div>
+    </div>
+  </section>
+
+  <footer>
+    資料來源：godfat 抽蛋模擬器，seed 3288448950 / last 874（＝抽完搖滾俏喵後的狀態）。
+    第五視圖與第四視圖的換算 <code>view5 A[n] = view4 A[n+46]</code> 已用 54 格交叉驗證，0 筆不符。
+    各池是否有原生必中，以 godfat 預設是否填滿 Guaranteed 欄判定。
+  </footer>
+</div>
+<script>
+const D = {"pools":{"1069":{"label":"超級貓咪祭","period":"~11/02 快結束","guar":false,"pay":"罐頭","A":[["白鶴貓","uber"],["人魚貓","rare"],["侏羅貓","rare"],["侏羅貓","rare"],["超能力貓","rare"],["窗邊少女貓","supa"],["高蹺貓","rare"],["命運之子佛諾","exclusive"],["人魚貓","rare"],["菩薩貓","supa"],["弓箭手貓","rare"],["貓咪陰陽師","rare"],["業餘撐杆跳貓","supa"],["蘋果貓","supa"],["雙掌星西兒＆小毬","uber"],["樹剪貓","rare"],["伊達政宗","uber"],["搖滾貓","rare"],["觀測兵器・探天隊","uber"],["高蹺貓","rare"],["拳擊手貓","rare"],["貓咪格鬥家","rare"],["湖中女神貓","supa"],["鬥牛士貓","rare"],["海賊貓","rare"],["神槍手貓","rare"],["貓咪陰陽師","rare"],["魔女貓","rare"],["拳擊手貓","rare"],["湖中女神貓","supa"],["樹剪貓","rare"],["拳擊手貓","rare"],["魔劍士貓","rare"],["菩薩貓","supa"],["貓咪陰陽師","rare"],["神槍手貓","rare"],["車輪貓","rare"],["魔女貓","rare"],["蘋果貓","supa"],["寶杖使者・悟淨貓","uber"],["魔劍士貓","rare"],["鬥牛士貓","rare"],["貓咪格鬥家","rare"],["麵包機貓","supa"],["車輪貓","rare"],["僧侶貓","rare"],["踢腳貓","uber_fest"],["浴缸貓","supa"],["鬥牛士貓","rare"],["發條貓","rare"],["搖滾貓","rare"],["鬥牛士貓","rare"],["壽司貓","supa"],["高蹺貓","rare"],["鬥牛士貓","rare"],["鬥牛士貓","rare"],["建築兵團・運輸隊","uber_fest"],["冥界神黑帝斯","uber"],["阿激拉","uber"],["小偷貓","rare"],["貓咪探測器","rare"],["貓咪番長","supa"],["浴缸貓","supa"],["鬥士貓","rare"],["業餘撐杆跳貓","supa"],["超能力貓","rare"],["拳擊手貓","rare"],["樹剪貓","rare"],["菩薩貓","supa"],["跳跳貓","rare"],["人魚貓","rare"],["鬥牛士貓","rare"],["邪龍赫維賈克","uber_fest"],["魔女貓","rare"],["魔劍士貓","rare"],["織田信長","uber"],["神槍手貓","rare"],["業餘撐杆跳貓","supa_fest"],["小偷貓","rare"],["舉重貓","supa"],["守護神阿努比斯","uber"],["弓箭手貓","rare"],["壽司貓","supa_fest"],["貓咪陰陽師","rare"],["舉重貓","supa"],["貓咪番長","supa"],["蘋果貓","supa_fest"],["魔劍士貓","rare"],["魔女貓","rare"],["超能力貓","rare"],["麵包機貓","supa_fest"],["貓咪探測器","rare"],["貓咪陰陽師","rare"],["鬥士貓","rare"],["薩滿貓","rare"],["麵包機貓","supa"],["壽司貓","supa"],["湖中女神貓","supa"],["拳擊手貓","rare"],["薩滿貓","rare"]],"B":[["浴缸貓","supa"],["魔劍士貓","rare"],["鬥士貓","rare"],["小偷貓","rare"],["神槍手貓","rare"],["貓咪格鬥家","rare"],["鬥牛士貓","rare"],["菩薩貓","supa"],["發條貓","rare"],["菩薩貓","supa_fest"],["高蹺貓","rare"],["搖滾貓","rare"],["魔劍士貓","rare"],["弓箭手貓","rare"],["僧侶貓","rare"],["拉斯沃斯","uber_fest"],["貓咪格鬥家","rare"],["暖桌貓","supa"],["災難少女凱斯莉","exclusive"],["發條貓","rare"],["觀測兵器・探天隊","uber_fest"],["魔劍士貓","rare"],["高蹺貓","rare"],["車輪貓","rare"],["海賊貓","rare"],["人魚貓","rare"],["菩薩貓","supa"],["小偷貓","rare"],["貓咪探測器","rare"],["湖中女神貓","supa"],["魔女貓","rare"],["跳跳貓","rare"],["僧侶貓","rare"],["鬥士貓","rare"],["歡笑揮舞孃","exclusive"],["僧侶貓","rare"],["鬥牛士貓","rare"],["聖龍梅基多拉","uber"],["鐵籠的姵卡薩","uber"],["小偷貓","rare"],["魔劍士貓","rare"],["人魚貓","rare"],["擊劍貓","supa"],["神槍手貓","rare"],["擊劍貓","supa"],["占卜貓","rare"],["侏羅貓","rare"],["鬥士貓","rare"],["神槍手貓","rare"],["侏羅貓","rare"],["美容貓","rare"],["薩滿貓","rare"],["魔劍士貓","rare"],["占卜貓","rare"],["僧侶貓","rare"],["亡者偵探吳仲力","uber"],["浴缸貓","supa"],["美容貓","rare"],["搖滾貓","rare"],["貓咪番長","supa"],["僧侶貓","rare"],["貓咪陰陽師","rare"],["占卜貓","rare"],["貓咪陰陽師","rare"],["浴缸貓","supa"],["搖滾貓","rare"],["神槍手貓","rare"],["暖桌貓","supa_fest"],["跳跳貓","rare"],["神龍卡姆庫拉","uber"],["快泳貓","supa"],["業餘撐杆跳貓","supa"],["海賊貓","rare"],["魔劍士貓","rare"],["鬥士貓","rare"],["樹精靈小魔麗","uber_fest"],["搖滾貓","rare"],["樹剪貓","rare"],["貓咪Baby","uber"],["魔劍士貓","rare"],["神槍手貓","rare"],["超能力貓","rare"],["美容貓","rare"],["美容貓","rare"],["貓咪番長","supa"],["鬥牛士貓","rare"],["貓咪番長","supa"],["湖中女神貓","supa_fest"],["占卜貓","rare"],["人魚貓","rare"],["跳跳貓","rare"],["拳擊手貓","rare"],["弓箭手貓","rare"],["火精靈梅拉","uber_fest"],["占卜貓","rare"],["小偷貓","rare"],["象頭神迦內薩","uber_fest"],["車輪貓","rare"],["快泳貓","supa_fest"],["拳擊手貓","rare"]],"G":{},"reroll":{"A4":["小偷貓","5B"],"A56":["人魚貓","57B"],"B84":["樹剪貓","86A"]}},"926":{"label":"萬聖節限定","period":"~11/09","guar":false,"pay":"罐頭","A":[["伯爵・真田幸村","uber"],["人魚貓","rare"],["侏羅貓","rare"],["侏羅貓","rare"],["超能力貓","rare"],["窗邊少女貓","supa"],["高蹺貓","rare"],["衝浪貓","uber"],["人魚貓","rare"],["暖桌貓","supa"],["弓箭手貓","rare"],["貓咪陰陽師","rare"],["麵包機貓","supa"],["業餘撐杆跳貓","supa"],["幽影冰雪貓","uber"],["樹剪貓","rare"],["幽影冰雪貓","uber"],["搖滾貓","rare"],["惡魔珊迪亞","uber"],["高蹺貓","rare"],["拳擊手貓","rare"],["貓咪格鬥家","rare"],["貓咪番長","supa"],["鬥牛士貓","rare"],["海賊貓","rare"],["神槍手貓","rare"],["貓咪陰陽師","rare"],["魔女貓","rare"],["拳擊手貓","rare"],["麵包機貓","supa"],["樹剪貓","rare"],["拳擊手貓","rare"],["魔劍士貓","rare"],["樹剪貓","supa"],["貓咪陰陽師","rare"],["神槍手貓","rare"],["車輪貓","rare"],["魔女貓","rare"],["壽司貓","supa"],["惡魔珊迪亞","uber"],["魔劍士貓","rare"],["鬥牛士貓","rare"],["貓咪格鬥家","rare"],["遭洗腦的坦克貓","supa"],["車輪貓","rare"],["僧侶貓","rare"],["衝浪貓","uber_fest"],["快泳貓","supa"],["鬥牛士貓","rare"],["發條貓","rare"],["搖滾貓","rare"],["鬥牛士貓","rare"],["壽司貓","supa"],["高蹺貓","rare"],["鬥牛士貓","rare"],["鬥牛士貓","rare"],["快泳貓","uber_fest"],["甜心溫蒂","uber"],["麵包機貓","uber"],["小偷貓","rare"],["貓咪探測器","rare"],["冰刀二人組","supa"],["遭洗腦的牛貓","supa"],["鬥士貓","rare"],["暖桌貓","supa"],["超能力貓","rare"],["拳擊手貓","rare"],["樹剪貓","rare"],["木乃伊相撲貓","supa"],["跳跳貓","rare"],["人魚貓","rare"],["鬥牛士貓","rare"],["貓咪番長","uber_fest"],["魔女貓","rare"],["魔劍士貓","rare"],["龍騎士斯卡巴魯斯","uber"],["神槍手貓","rare"],["搖滾貓","supa_fest"],["小偷貓","rare"],["快泳貓","supa"],["幽影冰雪貓","uber"],["弓箭手貓","rare"],["拳擊手貓","supa_fest"],["貓咪陰陽師","rare"],["冰刀二人組","supa"],["遭洗腦的牛貓","supa"],["侏羅貓","supa_fest"],["魔劍士貓","rare"],["魔女貓","rare"],["超能力貓","rare"],["發條貓","supa_fest"],["貓咪探測器","rare"],["貓咪陰陽師","rare"],["鬥士貓","rare"],["薩滿貓","rare"],["暖桌貓","supa"],["窗邊少女貓","supa"],["遭洗腦的坦克貓","supa"],["拳擊手貓","rare"],["薩滿貓","rare"]],"B":[["舉重貓","supa"],["魔劍士貓","rare"],["鬥士貓","rare"],["小偷貓","rare"],["神槍手貓","rare"],["貓咪格鬥家","rare"],["鬥牛士貓","rare"],["冰刀二人組","supa"],["發條貓","rare"],["薩滿貓","supa_fest"],["高蹺貓","rare"],["搖滾貓","rare"],["魔劍士貓","rare"],["弓箭手貓","rare"],["僧侶貓","rare"],["貓咪番長","uber_fest"],["貓咪格鬥家","rare"],["遭洗腦的坦克貓","supa"],["窗邊少女貓","uber_fest"],["發條貓","rare"],["蘋果貓","uber_fest"],["魔劍士貓","rare"],["高蹺貓","rare"],["車輪貓","rare"],["海賊貓","rare"],["人魚貓","rare"],["業餘撐杆跳貓","supa"],["小偷貓","rare"],["貓咪探測器","rare"],["擊劍貓","supa"],["魔女貓","rare"],["跳跳貓","rare"],["僧侶貓","rare"],["鬥士貓","rare"],["遭洗腦的牛貓","uber_fest"],["僧侶貓","rare"],["鬥牛士貓","rare"],["惡魔珊迪亞","uber"],["惡魔珊迪亞","uber"],["小偷貓","rare"],["魔劍士貓","rare"],["人魚貓","rare"],["衝浪貓","supa"],["神槍手貓","rare"],["業餘撐杆跳貓","supa"],["占卜貓","rare"],["侏羅貓","rare"],["鬥士貓","rare"],["神槍手貓","rare"],["侏羅貓","rare"],["美容貓","rare"],["薩滿貓","rare"],["魔劍士貓","rare"],["占卜貓","rare"],["僧侶貓","rare"],["南瓜索多姆","uber"],["木乃伊相撲貓","supa"],["美容貓","rare"],["搖滾貓","rare"],["衝浪貓","supa"],["僧侶貓","rare"],["貓咪陰陽師","rare"],["占卜貓","rare"],["貓咪陰陽師","rare"],["蘋果貓","supa"],["搖滾貓","rare"],["神槍手貓","rare"],["僧侶貓","supa_fest"],["跳跳貓","rare"],["龍騎士斯卡巴魯斯","uber"],["遭洗腦的牛貓","supa"],["貓咪番長","supa"],["海賊貓","rare"],["魔劍士貓","rare"],["鬥士貓","rare"],["舉重貓","uber_fest"],["搖滾貓","rare"],["樹剪貓","rare"],["甜心溫蒂","uber"],["魔劍士貓","rare"],["神槍手貓","rare"],["超能力貓","rare"],["美容貓","rare"],["美容貓","rare"],["遭洗腦的貓咪","supa"],["鬥牛士貓","rare"],["湖中女神貓","supa"],["占卜貓","supa_fest"],["占卜貓","rare"],["人魚貓","rare"],["跳跳貓","rare"],["拳擊手貓","rare"],["弓箭手貓","rare"],["窗邊少女貓","uber_fest"],["占卜貓","rare"],["小偷貓","rare"],["浴缸貓","uber_fest"],["車輪貓","rare"],["發條貓","supa_fest"],["拳擊手貓","rare"]],"G":{},"reroll":{"A4":["小偷貓","5B"],"A56":["人魚貓","57B"],"B84":["樹剪貓","86A"],"B89":["小偷貓","91A"]}},"1079":{"label":"熱血!大運動會","period":"11/02–11/09","guar":false,"pay":"罐頭","A":[["特命交警阿酷賽爾","uber"],["人魚貓","rare"],["侏羅貓","rare"],["侏羅貓","rare"],["超能力貓","rare"],["窗邊少女貓","supa"],["高蹺貓","rare"],["擊劍貓","uber"],["人魚貓","rare"],["菩薩貓","supa"],["弓箭手貓","rare"],["貓咪陰陽師","rare"],["業餘撐杆跳貓","supa"],["蘋果貓","supa"],["頭槌貓","uber"],["樹剪貓","rare"],["特命交警阿酷賽爾","uber"],["搖滾貓","rare"],["火精靈梅拉","uber"],["高蹺貓","rare"],["拳擊手貓","rare"],["貓咪格鬥家","rare"],["湖中女神貓","supa"],["鬥牛士貓","rare"],["海賊貓","rare"],["神槍手貓","rare"],["貓咪陰陽師","rare"],["魔女貓","rare"],["拳擊手貓","rare"],["湖中女神貓","supa"],["樹剪貓","rare"],["拳擊手貓","rare"],["魔劍士貓","rare"],["樹剪貓","supa"],["貓咪陰陽師","rare"],["神槍手貓","rare"],["車輪貓","rare"],["魔女貓","rare"],["蘋果貓","supa"],["成田甲斐","uber"],["魔劍士貓","rare"],["鬥牛士貓","rare"],["貓咪格鬥家","rare"],["麵包機貓","supa"],["車輪貓","rare"],["僧侶貓","rare"],["窗邊少女貓","uber_fest"],["浴缸貓","supa"],["鬥牛士貓","rare"],["發條貓","rare"],["搖滾貓","rare"],["鬥牛士貓","rare"],["壽司貓","supa"],["高蹺貓","rare"],["鬥牛士貓","rare"],["鬥牛士貓","rare"],["浴缸貓","uber_fest"],["神龍卡姆庫拉","uber"],["快泳貓","uber"],["小偷貓","rare"],["貓咪探測器","rare"],["貓咪番長","supa"],["浴缸貓","supa"],["鬥士貓","rare"],["業餘撐杆跳貓","supa"],["超能力貓","rare"],["拳擊手貓","rare"],["樹剪貓","rare"],["菩薩貓","supa"],["跳跳貓","rare"],["人魚貓","rare"],["鬥牛士貓","rare"],["業餘撐杆跳貓","uber_fest"],["魔女貓","rare"],["魔劍士貓","rare"],["獅子番長拉克雷斯","uber"],["神槍手貓","rare"],["搖滾貓","supa_fest"],["小偷貓","rare"],["舉重貓","supa"],["特命交警阿酷賽爾","uber"],["弓箭手貓","rare"],["拳擊手貓","supa_fest"],["貓咪陰陽師","rare"],["舉重貓","supa"],["貓咪番長","supa"],["侏羅貓","supa_fest"],["魔劍士貓","rare"],["魔女貓","rare"],["超能力貓","rare"],["發條貓","supa_fest"],["貓咪探測器","rare"],["貓咪陰陽師","rare"],["鬥士貓","rare"],["薩滿貓","rare"],["麵包機貓","supa"],["壽司貓","supa"],["湖中女神貓","supa"],["拳擊手貓","rare"],["薩滿貓","rare"]],"B":[["浴缸貓","supa"],["魔劍士貓","rare"],["鬥士貓","rare"],["小偷貓","rare"],["神槍手貓","rare"],["貓咪格鬥家","rare"],["鬥牛士貓","rare"],["菩薩貓","supa"],["發條貓","rare"],["薩滿貓","supa_fest"],["高蹺貓","rare"],["搖滾貓","rare"],["魔劍士貓","rare"],["弓箭手貓","rare"],["僧侶貓","rare"],["放浪貓弟","uber_fest"],["貓咪格鬥家","rare"],["暖桌貓","supa"],["業餘撐杆跳貓","uber_fest"],["發條貓","rare"],["御宅貓","uber_fest"],["魔劍士貓","rare"],["高蹺貓","rare"],["車輪貓","rare"],["海賊貓","rare"],["人魚貓","rare"],["菩薩貓","supa"],["小偷貓","rare"],["貓咪探測器","rare"],["湖中女神貓","supa"],["魔女貓","rare"],["跳跳貓","rare"],["僧侶貓","rare"],["鬥士貓","rare"],["浴缸貓","uber_fest"],["僧侶貓","rare"],["鬥牛士貓","rare"],["金太郎","uber"],["火精靈梅拉","uber"],["小偷貓","rare"],["魔劍士貓","rare"],["人魚貓","rare"],["擊劍貓","supa"],["神槍手貓","rare"],["擊劍貓","supa"],["占卜貓","rare"],["侏羅貓","rare"],["鬥士貓","rare"],["神槍手貓","rare"],["侏羅貓","rare"],["美容貓","rare"],["薩滿貓","rare"],["魔劍士貓","rare"],["占卜貓","rare"],["僧侶貓","rare"],["火精靈梅拉","uber"],["浴缸貓","supa"],["美容貓","rare"],["搖滾貓","rare"],["貓咪番長","supa"],["僧侶貓","rare"],["貓咪陰陽師","rare"],["占卜貓","rare"],["貓咪陰陽師","rare"],["浴缸貓","supa"],["搖滾貓","rare"],["神槍手貓","rare"],["僧侶貓","supa_fest"],["跳跳貓","rare"],["神龍卡姆庫拉","uber"],["快泳貓","supa"],["業餘撐杆跳貓","supa"],["海賊貓","rare"],["魔劍士貓","rare"],["鬥士貓","rare"],["窗邊少女貓","uber_fest"],["搖滾貓","rare"],["樹剪貓","rare"],["太陽神天照","uber"],["魔劍士貓","rare"],["神槍手貓","rare"],["超能力貓","rare"],["美容貓","rare"],["美容貓","rare"],["貓咪番長","supa"],["鬥牛士貓","rare"],["貓咪番長","supa"],["占卜貓","supa_fest"],["占卜貓","rare"],["人魚貓","rare"],["跳跳貓","rare"],["拳擊手貓","rare"],["弓箭手貓","rare"],["冰刀二人組","uber_fest"],["占卜貓","rare"],["小偷貓","rare"],["壽司貓","uber_fest"],["車輪貓","rare"],["發條貓","supa_fest"],["拳擊手貓","rare"]],"G":{},"reroll":{"A4":["小偷貓","5B"],"A56":["人魚貓","57B"],"B84":["樹剪貓","86A"],"B89":["小偷貓","91A"]}},"1080":{"label":"龍一（大運動會）","period":"11/02–11/09","guar":false,"pay":"罐頭","A":[["阿激拉","uber"],["人魚貓","rare"],["侏羅貓","rare"],["侏羅貓","rare"],["超能力貓","rare"],["窗邊少女貓","supa"],["高蹺貓","rare"],["擊劍貓","uber"],["人魚貓","rare"],["菩薩貓","supa"],["弓箭手貓","rare"],["貓咪陰陽師","rare"],["業餘撐杆跳貓","supa"],["蘋果貓","supa"],["異能貓","uber"],["樹剪貓","rare"],["阿激拉","uber"],["搖滾貓","rare"],["鐵精靈卡卿","uber"],["高蹺貓","rare"],["拳擊手貓","rare"],["貓咪格鬥家","rare"],["湖中女神貓","supa"],["鬥牛士貓","rare"],["海賊貓","rare"],["神槍手貓","rare"],["貓咪陰陽師","rare"],["魔女貓","rare"],["拳擊手貓","rare"],["湖中女神貓","supa"],["樹剪貓","rare"],["拳擊手貓","rare"],["魔劍士貓","rare"],["樹剪貓","supa"],["貓咪陰陽師","rare"],["神槍手貓","rare"],["車輪貓","rare"],["魔女貓","rare"],["蘋果貓","supa"],["前田慶次","uber"],["魔劍士貓","rare"],["鬥牛士貓","rare"],["貓咪格鬥家","rare"],["麵包機貓","supa"],["車輪貓","rare"],["僧侶貓","rare"],["窗邊少女貓","uber_fest"],["浴缸貓","supa"],["鬥牛士貓","rare"],["發條貓","rare"],["搖滾貓","rare"],["鬥牛士貓","rare"],["壽司貓","supa"],["高蹺貓","rare"],["鬥牛士貓","rare"],["鬥牛士貓","rare"],["浴缸貓","uber_fest"],["龍騎士巴魯斯","uber"],["快泳貓","uber"],["小偷貓","rare"],["貓咪探測器","rare"],["貓咪番長","supa"],["浴缸貓","supa"],["鬥士貓","rare"],["業餘撐杆跳貓","supa"],["超能力貓","rare"],["拳擊手貓","rare"],["樹剪貓","rare"],["菩薩貓","supa"],["跳跳貓","rare"],["人魚貓","rare"],["鬥牛士貓","rare"],["業餘撐杆跳貓","uber_fest"],["魔女貓","rare"],["魔劍士貓","rare"],["猿帝・悟空貓","uber"],["神槍手貓","rare"],["搖滾貓","supa_fest"],["小偷貓","rare"],["舉重貓","supa"],["阿激拉","uber"],["弓箭手貓","rare"],["拳擊手貓","supa_fest"],["貓咪陰陽師","rare"],["舉重貓","supa"],["貓咪番長","supa"],["侏羅貓","supa_fest"],["魔劍士貓","rare"],["魔女貓","rare"],["超能力貓","rare"],["發條貓","supa_fest"],["貓咪探測器","rare"],["貓咪陰陽師","rare"],["鬥士貓","rare"],["薩滿貓","rare"],["麵包機貓","supa"],["壽司貓","supa"],["湖中女神貓","supa"],["拳擊手貓","rare"],["薩滿貓","rare"]],"B":[["浴缸貓","supa"],["魔劍士貓","rare"],["鬥士貓","rare"],["小偷貓","rare"],["神槍手貓","rare"],["貓咪格鬥家","rare"],["鬥牛士貓","rare"],["菩薩貓","supa"],["發條貓","rare"],["薩滿貓","supa_fest"],["高蹺貓","rare"],["搖滾貓","rare"],["魔劍士貓","rare"],["弓箭手貓","rare"],["僧侶貓","rare"],["放浪貓弟","uber_fest"],["貓咪格鬥家","rare"],["暖桌貓","supa"],["業餘撐杆跳貓","uber_fest"],["發條貓","rare"],["御宅貓","uber_fest"],["魔劍士貓","rare"],["高蹺貓","rare"],["車輪貓","rare"],["海賊貓","rare"],["人魚貓","rare"],["菩薩貓","supa"],["小偷貓","rare"],["貓咪探測器","rare"],["湖中女神貓","supa"],["魔女貓","rare"],["跳跳貓","rare"],["僧侶貓","rare"],["鬥士貓","rare"],["浴缸貓","uber_fest"],["僧侶貓","rare"],["鬥牛士貓","rare"],["一寸法師","uber"],["鐵精靈卡卿","uber"],["小偷貓","rare"],["魔劍士貓","rare"],["人魚貓","rare"],["擊劍貓","supa"],["神槍手貓","rare"],["擊劍貓","supa"],["占卜貓","rare"],["侏羅貓","rare"],["鬥士貓","rare"],["神槍手貓","rare"],["侏羅貓","rare"],["美容貓","rare"],["薩滿貓","rare"],["魔劍士貓","rare"],["占卜貓","rare"],["僧侶貓","rare"],["鐵精靈卡卿","uber"],["浴缸貓","supa"],["美容貓","rare"],["搖滾貓","rare"],["貓咪番長","supa"],["僧侶貓","rare"],["貓咪陰陽師","rare"],["占卜貓","rare"],["貓咪陰陽師","rare"],["浴缸貓","supa"],["搖滾貓","rare"],["神槍手貓","rare"],["僧侶貓","supa_fest"],["跳跳貓","rare"],["龍騎士巴魯斯","uber"],["快泳貓","supa"],["業餘撐杆跳貓","supa"],["海賊貓","rare"],["魔劍士貓","rare"],["鬥士貓","rare"],["窗邊少女貓","uber_fest"],["搖滾貓","rare"],["樹剪貓","rare"],["象頭神迦內薩","uber"],["魔劍士貓","rare"],["神槍手貓","rare"],["超能力貓","rare"],["美容貓","rare"],["美容貓","rare"],["貓咪番長","supa"],["鬥牛士貓","rare"],["貓咪番長","supa"],["占卜貓","supa_fest"],["占卜貓","rare"],["人魚貓","rare"],["跳跳貓","rare"],["拳擊手貓","rare"],["弓箭手貓","rare"],["冰刀二人組","uber_fest"],["占卜貓","rare"],["小偷貓","rare"],["壽司貓","uber_fest"],["車輪貓","rare"],["發條貓","supa_fest"],["拳擊手貓","rare"]],"G":{},"reroll":{"A4":["小偷貓","5B"],"A56":["人魚貓","57B"],"B84":["樹剪貓","86A"],"B89":["小偷貓","91A"]}},"1071":{"label":"白金轉蛋","period":"常駐","guar":false,"pay":"白金卷","A":[["護法神韋馱天","uber"],["雷精靈波特","rare"],["雙掌星西兒＆小毬","rare"],["明智光秀","rare"],["明智光秀","rare"],["妖賢女莉莉","supa"],["頭槌貓","rare"],["地龍索多姆","uber"],["非命之王佛挪","exclusive"],["明智光秀","supa"],["水精靈密茲","rare"],["鐵腕女孩東雲寺茜","rare"],["光之女神希莉烏斯","exclusive"],["古代軍船・戰槳隊","supa"],["鐵精靈卡卿","uber"],["天誅飛隼","rare"],["墮天神路西法","uber"],["光翼神伊西絲","rare"],["風魔小太郎","uber"],["成田甲斐","rare"],["猿帝・悟空貓","rare"],["地獄警官艾瑪","exclusive"],["霸龍迪歐拉姆斯","supa"],["額頭貓","rare"],["冥佑天女露娜夏","exclusive"],["溫泉天堂・浴場隊","rare"],["成田甲斐","rare"],["龍騎士巴魯斯","rare"],["幼獸加爾","exclusive"],["亡者偵探吳仲力","supa"],["鐵精靈卡卿","rare"],["咔嚓咔嚓山崽子","rare"],["時空神克羅諾絲","rare"],["白鶴貓","supa"],["上杉謙信","rare"],["守護神阿努比斯","rare"],["刺骨貓","rare"],["狙擊天才沙紀","rare"],["天草四郎","supa"],["光翼神伊西絲","uber"],["時空神克羅諾絲","rare"],["斗笠地藏","rare"],["桃太郎","rare"],["冥界卡莉法","supa"],["風魔小太郎","rare"],["今川義元","rare"],["英雄令媛蜜斯","uber_fest"],["妖賢女莉莉","supa"],["海王神波塞頓","rare"],["古龍剛格利昂","rare"],["狩獵女孩媞倫","rare"],["手甩貓","rare"],["狩獵女孩媞倫","supa"],["機器貓","rare"],["守護神阿努比斯","rare"],["明智光秀","rare"],["狩獵女孩媞倫","uber_fest"],["噴火恐龍貓","uber"],["墮天神路西法","uber"],["咔嚓咔嚓山崽子","rare"],["霸龍迪歐拉姆斯","rare"],["捲捲貓","supa"],["斗笠地藏","supa"],["貓咪鬥惡龍","rare"],["拉斯沃斯","supa"],["明智光秀","rare"],["太陽神天照","rare"],["召喚・八戒貓","rare"],["鐵籠的姵卡薩","supa"],["猴蟹大戰貓","rare"],["非命之王佛挪","exclusive"],["幼天女露娜","exclusive"],["樹精靈小魔麗","uber_fest"],["猴蟹大戰貓","rare"],["雷精靈波特","rare"],["古代軍船・戰槳隊","uber"],["貓俠大帝","rare"],["天狗貓","supa_fest"],["角龍格拉迪歐斯","rare"],["墮天神路西法","supa"],["太陽神天照","uber"],["猿帝・悟空貓","rare"],["浦島太郎","supa_fest"],["頭槌貓","rare"],["風神溫蒂","supa"],["飛空襲擊・轟炸隊","supa"],["明智光秀","supa_fest"],["織田信長","rare"],["闇精靈亞米","rare"],["幼天女露娜","exclusive"],["天誅飛隼","supa_fest"],["地龍索多姆","rare"],["真田幸村","rare"],["上杉謙信","rare"],["建築兵團・運輸隊","rare"],["斗笠地藏","supa"],["光翼神伊西絲","supa"],["砲龍剛多羅斯","supa"],["聖龍梅基多拉","rare"],["桃太郎","rare"]],"B":[["一寸法師","supa"],["飛空襲擊・轟炸隊","rare"],["眼擊貓","rare"],["刺骨貓","rare"],["光之女神希莉烏斯","exclusive"],["獅子番長拉克雷斯","rare"],["守護神阿努比斯","rare"],["地龍索多姆","supa"],["海龍達萊亞薩","rare"],["真田幸村","supa_fest"],["桃太郎","rare"],["天草四郎","rare"],["特命交警阿酷賽爾","rare"],["貓咪Baby","rare"],["今川義元","rare"],["咔嚓咔嚓山崽子","uber_fest"],["巫女姬御靈","exclusive"],["今川義元","supa"],["嵐龍機沃爾內德","uber_fest"],["英雄令媛蜜斯","rare"],["風魔小太郎","uber_fest"],["巨劍騎士貓","rare"],["閃電機兵飛雷","exclusive"],["光翼神伊西絲","rare"],["火精靈梅拉","rare"],["服部半藏","rare"],["西園寺機器子","supa"],["角龍格拉迪歐斯","rare"],["舌切雀","rare"],["石精靈滾瓦","supa"],["冰雪貓","rare"],["海龍達萊亞薩","rare"],["風精靈艾爾","rare"],["建築兵團・運輸隊","rare"],["悲嘆揮舞孃","exclusive"],["巨劍騎士貓","rare"],["手甩貓","rare"],["美女神阿芙蘿黛蒂","uber"],["悲嘆揮舞孃","exclusive"],["捲捲貓","rare"],["白兔女俠","rare"],["時空神克羅諾絲","rare"],["天狗貓","supa"],["貓俠大帝","rare"],["風精靈艾爾","supa"],["明智光秀","rare"],["手甩貓","rare"],["上杉謙信","rare"],["溫泉天堂・浴場隊","rare"],["溫泉天堂・浴場隊","rare"],["今川義元","rare"],["建築兵團・運輸隊","rare"],["時空神克羅諾絲","rare"],["黑獸加迪","exclusive"],["幼獸加歐","exclusive"],["天誅飛隼","uber"],["龍戰機雷電","supa"],["風精靈艾爾","rare"],["捲捲貓","rare"],["白兔女俠","supa"],["禍根魔女凱斯莉","exclusive"],["閃電機兵飛雷","exclusive"],["前田慶次","rare"],["神龍卡姆庫拉","rare"],["貓咪Baby","supa"],["咒術師死亡小丑","rare"],["惡鬼喵魔","rare"],["特命交警阿酷賽爾","supa_fest"],["英雄令媛蜜斯","rare"],["英雄令媛蜜斯","uber"],["武田信玄","supa"],["捲捲貓","supa"],["阿激拉","rare"],["巨劍騎士貓","rare"],["歡笑揮舞孃","exclusive"],["歡笑揮舞孃","exclusive"],["聖龍梅基多拉","rare"],["鐵精靈卡卿","rare"],["巫女姬御靈","exclusive"],["孤月騎士路諾斯","exclusive"],["影傑漆黑達太貓","exclusive"],["角擊貓","rare"],["白兔女俠","rare"],["飛空襲擊・轟炸隊","rare"],["服部半藏","supa"],["明智光秀","rare"],["額頭貓","supa"],["邪龍赫維賈克","supa_fest"],["守護神阿努比斯","rare"],["時空神克羅諾絲","rare"],["石精靈滾瓦","rare"],["太陽神天照","rare"],["曲射砲台・砲擊團","rare"],["服部半藏","uber_fest"],["雙掌星西兒＆小毬","rare"],["刺骨貓","rare"],["幼獸加歐","exclusive"],["太陽神天照","rare"],["踢腳貓","supa_fest"],["光翼神伊西絲","rare"]],"G":{},"reroll":{}},"1072":{"label":"傳說轉蛋","period":"常駐","guar":false,"pay":"黑金卷","A":[["聖女貓會長貞德","uber"],["雷精靈波特","rare"],["雙掌星西兒＆小毬","rare"],["明智光秀","rare"],["明智光秀","rare"],["妖賢女莉莉","supa"],["頭槌貓","rare"],["地龍索多姆","uber"],["非命之王佛挪","exclusive"],["明智光秀","supa"],["水精靈密茲","rare"],["鐵腕女孩東雲寺茜","rare"],["光之女神希莉烏斯","exclusive"],["古代軍船・戰槳隊","supa"],["超越科學者天域博士","uber"],["天誅飛隼","rare"],["宮本武藏","uber"],["光翼神伊西絲","rare"],["貓若丸","uber"],["成田甲斐","rare"],["猿帝・悟空貓","rare"],["地獄警官艾瑪","exclusive"],["霸龍迪歐拉姆斯","supa"],["額頭貓","rare"],["冥佑天女露娜夏","exclusive"],["溫泉天堂・浴場隊","rare"],["成田甲斐","rare"],["龍騎士巴魯斯","rare"],["幼獸加爾","exclusive"],["亡者偵探吳仲力","supa"],["鐵精靈卡卿","rare"],["咔嚓咔嚓山崽子","rare"],["時空神克羅諾絲","rare"],["白鶴貓","supa"],["上杉謙信","rare"],["守護神阿努比斯","rare"],["刺骨貓","rare"],["狙擊天才沙紀","rare"],["天草四郎","supa"],["曉之伊邪那岐","uber"],["時空神克羅諾絲","rare"],["斗笠地藏","rare"],["桃太郎","rare"],["冥界卡莉法","supa"],["風魔小太郎","rare"],["今川義元","rare"],["英雄令媛蜜斯","uber_fest"],["妖賢女莉莉","supa"],["海王神波塞頓","rare"],["古龍剛格利昂","rare"],["狩獵女孩媞倫","rare"],["手甩貓","rare"],["狩獵女孩媞倫","supa"],["機器貓","rare"],["守護神阿努比斯","rare"],["明智光秀","rare"],["狩獵女孩媞倫","uber_fest"],["聖女貓會長貞德","uber"],["墮天神路西法","uber"],["咔嚓咔嚓山崽子","rare"],["霸龍迪歐拉姆斯","rare"],["捲捲貓","supa"],["斗笠地藏","supa"],["貓咪鬥惡龍","rare"],["拉斯沃斯","supa"],["明智光秀","rare"],["太陽神天照","rare"],["召喚・八戒貓","rare"],["鐵籠的姵卡薩","supa"],["猴蟹大戰貓","rare"],["非命之王佛挪","exclusive"],["幼天女露娜","exclusive"],["樹精靈小魔麗","uber_fest"],["猴蟹大戰貓","rare"],["雷精靈波特","rare"],["奇幻貓","uber"],["貓俠大帝","rare"],["天狗貓","supa_fest"],["角龍格拉迪歐斯","rare"],["墮天神路西法","supa"],["大地女神蓋婭","uber"],["猿帝・悟空貓","rare"],["浦島太郎","supa_fest"],["頭槌貓","rare"],["風神溫蒂","supa"],["飛空襲擊・轟炸隊","supa"],["明智光秀","supa_fest"],["織田信長","rare"],["闇精靈亞米","rare"],["幼天女露娜","exclusive"],["天誅飛隼","supa_fest"],["地龍索多姆","rare"],["真田幸村","rare"],["上杉謙信","rare"],["建築兵團・運輸隊","rare"],["斗笠地藏","supa"],["光翼神伊西絲","supa"],["砲龍剛多羅斯","supa"],["聖龍梅基多拉","rare"],["桃太郎","rare"]],"B":[["一寸法師","supa"],["飛空襲擊・轟炸隊","rare"],["眼擊貓","rare"],["刺骨貓","rare"],["光之女神希莉烏斯","exclusive"],["獅子番長拉克雷斯","rare"],["守護神阿努比斯","rare"],["地龍索多姆","supa"],["海龍達萊亞薩","rare"],["真田幸村","supa_fest"],["桃太郎","rare"],["天草四郎","rare"],["特命交警阿酷賽爾","rare"],["貓咪Baby","rare"],["今川義元","rare"],["咔嚓咔嚓山崽子","uber_fest"],["巫女姬御靈","exclusive"],["今川義元","supa"],["嵐龍機沃爾內德","uber_fest"],["英雄令媛蜜斯","rare"],["風魔小太郎","uber_fest"],["巨劍騎士貓","rare"],["閃電機兵飛雷","exclusive"],["光翼神伊西絲","rare"],["火精靈梅拉","rare"],["服部半藏","rare"],["西園寺機器子","supa"],["角龍格拉迪歐斯","rare"],["舌切雀","rare"],["石精靈滾瓦","supa"],["冰雪貓","rare"],["海龍達萊亞薩","rare"],["風精靈艾爾","rare"],["建築兵團・運輸隊","rare"],["悲嘆揮舞孃","exclusive"],["巨劍騎士貓","rare"],["手甩貓","rare"],["宵之伊邪那美","uber"],["曉之伊邪那岐","uber"],["捲捲貓","rare"],["白兔女俠","rare"],["時空神克羅諾絲","rare"],["天狗貓","supa"],["貓俠大帝","rare"],["風精靈艾爾","supa"],["明智光秀","rare"],["手甩貓","rare"],["上杉謙信","rare"],["溫泉天堂・浴場隊","rare"],["溫泉天堂・浴場隊","rare"],["今川義元","rare"],["建築兵團・運輸隊","rare"],["時空神克羅諾絲","rare"],["黑獸加迪","exclusive"],["幼獸加歐","exclusive"],["貓若丸","uber"],["龍戰機雷電","supa"],["風精靈艾爾","rare"],["捲捲貓","rare"],["白兔女俠","supa"],["禍根魔女凱斯莉","exclusive"],["閃電機兵飛雷","exclusive"],["前田慶次","rare"],["神龍卡姆庫拉","rare"],["貓咪Baby","supa"],["咒術師死亡小丑","rare"],["惡鬼喵魔","rare"],["特命交警阿酷賽爾","supa_fest"],["英雄令媛蜜斯","rare"],["奇幻貓","uber"],["武田信玄","supa"],["捲捲貓","supa"],["阿激拉","rare"],["巨劍騎士貓","rare"],["歡笑揮舞孃","exclusive"],["歡笑揮舞孃","exclusive"],["聖龍梅基多拉","rare"],["鐵精靈卡卿","rare"],["終末兵器・異滅堂","uber"],["孤月騎士路諾斯","exclusive"],["影傑漆黑達太貓","exclusive"],["角擊貓","rare"],["白兔女俠","rare"],["飛空襲擊・轟炸隊","rare"],["服部半藏","supa"],["明智光秀","rare"],["額頭貓","supa"],["邪龍赫維賈克","supa_fest"],["守護神阿努比斯","rare"],["時空神克羅諾絲","rare"],["石精靈滾瓦","rare"],["太陽神天照","rare"],["曲射砲台・砲擊團","rare"],["服部半藏","uber_fest"],["雙掌星西兒＆小毬","rare"],["刺骨貓","rare"],["幼獸加歐","exclusive"],["太陽神天照","rare"],["踢腳貓","supa_fest"],["光翼神伊西絲","rare"]],"G":{},"reroll":{}}},"order":["1069","926","1079","1080","1071","1072"],"hi":["exclusive","uber","uber_fest","legend"],"unknown":[{"name":"快泳貓","pools":["1079","1080","926"]},{"name":"樹精靈小魔麗","pools":["1069","1071","1072"]},{"name":"歡笑揮舞孃","pools":["1069","1071","1072"]},{"name":"浴缸貓","pools":["1079","1080","926"]},{"name":"窗邊少女貓","pools":["1079","1080","926"]},{"name":"冰刀二人組","pools":["1079","1080"]},{"name":"咔嚓咔嚓山崽子","pools":["1071","1072"]},{"name":"地龍索多姆","pools":["1071","1072"]},{"name":"墮天神路西法","pools":["1071","1072"]},{"name":"壽司貓","pools":["1079","1080"]},{"name":"嵐龍機沃爾內德","pools":["1071","1072"]},{"name":"幼獸加歐","pools":["1071","1072"]},{"name":"御宅貓","pools":["1079","1080"]},{"name":"擊劍貓","pools":["1079","1080"]},{"name":"放浪貓弟","pools":["1079","1080"]},{"name":"服部半藏","pools":["1071","1072"]},{"name":"業餘撐杆跳貓","pools":["1079","1080"]},{"name":"狩獵女孩媞倫","pools":["1071","1072"]},{"name":"神龍卡姆庫拉","pools":["1069","1079"]},{"name":"閃電機兵飛雷","pools":["1071","1072"]},{"name":"阿激拉","pools":["1069","1080"]},{"name":"風魔小太郎","pools":["1071","1072"]},{"name":"一寸法師","pools":["1080"]},{"name":"伊達政宗","pools":["1069"]},{"name":"伯爵・真田幸村","pools":["926"]},{"name":"光翼神伊西絲","pools":["1071"]},{"name":"南瓜索多姆","pools":["926"]},{"name":"古代軍船・戰槳隊","pools":["1071"]},{"name":"噴火恐龍貓","pools":["1071"]},{"name":"天誅飛隼","pools":["1071"]},{"name":"奇幻貓","pools":["1072"]},{"name":"宮本武藏","pools":["1072"]},{"name":"宵之伊邪那美","pools":["1072"]},{"name":"寶杖使者・悟淨貓","pools":["1069"]},{"name":"幽影冰雪貓","pools":["926"]},{"name":"惡魔珊迪亞","pools":["926"]},{"name":"特命交警阿酷賽爾","pools":["1079"]},{"name":"猿帝・悟空貓","pools":["1080"]},{"name":"獅子番長拉克雷斯","pools":["1079"]},{"name":"甜心溫蒂","pools":["926"]},{"name":"異能貓","pools":["1080"]},{"name":"終末兵器・異滅堂","pools":["1072"]},{"name":"織田信長","pools":["1069"]},{"name":"美女神阿芙蘿黛蒂","pools":["1071"]},{"name":"聖女貓會長貞德","pools":["1072"]},{"name":"聖龍梅基多拉","pools":["1069"]},{"name":"衝浪貓","pools":["926"]},{"name":"觀測兵器・探天隊","pools":["1069"]},{"name":"貓咪Baby","pools":["1069"]},{"name":"貓咪番長","pools":["926"]},{"name":"貓若丸","pools":["1072"]},{"name":"超越科學者天域博士","pools":["1072"]},{"name":"踢腳貓","pools":["1069"]},{"name":"遭洗腦的牛貓","pools":["926"]},{"name":"金太郎","pools":["1079"]},{"name":"雙掌星西兒＆小毬","pools":["1069"]},{"name":"頭槌貓","pools":["1079"]},{"name":"龍騎士巴魯斯","pools":["1080"]},{"name":"龍騎士斯卡巴魯斯","pools":["926"]}],"roster":{"ubers":77,"legends":3,"legendOwned":["京坂七穗","大地女神蓋婭","曉之伊邪那岐"]},"owned":["Archer","Gilgamesh","Lancer","Rider","Saber","不死女薇薇","亡者偵探吳仲力","京坂七穗","伊莉雅蘇菲爾","俏狐娘百荷","光之女神希莉烏斯","冒險家佳奈","冥佑天女露娜夏","冥界神黑帝斯","前田慶次","召喚少年小悟","周遊藝團・雜耍隊","命運之子佛諾","咒術師死亡小丑","地底戰隊・木樁釘","地底戰隊・貓怪手","地底戰隊・電鋸手","地獄警官艾瑪","大地女神蓋婭","太陽神天照","孤月騎士路諾斯","守護神阿努比斯","巫女姬御靈","帝國陸軍・石砲隊","幼天女露娜","幼獸加爾","建築兵團・運輸隊","影傑漆黑達太貓","悲嘆揮舞孃","惡鬼喵魔","成田甲斐","拉斯沃斯","搖滾俏喵","曉之伊邪那岐","曲射砲台・砲擊團","湖中女神貓","火精靈梅拉","災難少女凱斯莉","白鶴貓","真Assassin","真田幸村","眼擊貓","石精靈滾瓦","禍根魔女凱斯莉","空中商店・探險家","美人魚琉璃","舉重貓","英雄令媛蜜斯","蘋果貓","衛宮士郎","護法神韋馱天","象頭神迦內薩","貓咪城Mｉｎｉ","貓咪鬥惡龍","遠坂凜","邪龍赫維賈克","鋼鐵貓","鐵籠的姵卡薩","鐵精靈卡卿","間桐櫻","闇女神蓓卡","雷神珊迪亞","非命之王佛挪","飛空襲擊・轟炸隊","魔導師希朵咪","麵包機貓","黑獸加迪"],"resources":{"罐頭":1500,"稀有卷":11,"白金卷":0,"黑金卷":1},"position":"24A","positionPending":false,"positionLast":null,"positionNote":"2026-10-20 戰國武神那發必中對不上任何起點：能一發同時拿到真田幸村和成田甲斐的只有 9A 和 75A，但兩者都會帶到前田慶次，而你說這次沒抽到。推測成田甲斐來自另一次單抽。需要你目前的 godfat 網址才能定位。","done":{"title":"第五視圖：2026-10-20，戰國武神（1043）這一趟","span":"2026-10-20，戰國武神（1043）這一趟。1A 起步，用金卷推進兩格後在 3A 打必中；該發在 4A 撞到 reroll 牆換去 B 軌，再由保底拉回 A 軌，落點 14A。","cost":{"罐頭":1650,"稀有卷":11,"白金卷":0,"黑金卷":0},"got":["鐵籠的姵卡薩","真田幸村","成田甲斐","石精靈滾瓦","火精靈梅拉"],"steps":[{"pay":"稀有卷 ×1","pool":"1021","from":"1A","to":"2A","got":["鐵籠的姵卡薩"]},{"pay":"稀有卷 ×1","pool":"1021","from":"2A","to":"3A","got":[]},{"pay":"必中11連","pool":"1043","from":"3A","to":"14A","got":["真田幸村"]},{"pay":"稀有卷 ×1","pool":"1043","from":"14A","to":"15A","got":[]},{"pay":"稀有卷 ×1","pool":"1043","from":"15A","to":"16A","got":["成田甲斐"]},{"pay":"稀有卷 ×1","pool":"1004","from":"16A","to":"17A","got":[]},{"pay":"稀有卷 ×1","pool":"1004","from":"17A","to":"18A","got":["石精靈滾瓦"]},{"pay":"稀有卷 ×1","pool":"1004","from":"18A","to":"19A","got":[]},{"pay":"罐頭單抽","pool":"1004","from":"19A","to":"20A","got":["火精靈梅拉"]},{"pay":"稀有卷 ×3","pool":"食物池","from":"20A","to":"23A","got":[]},{"pay":"稀有卷 ×1","pool":"食物池","from":"23A","to":"24A","got":[]}]}};
+</script>
+<script>
+const HI = new Set(D.hi), OWNED = new Set(D.owned);
+const PENDING = !!D.positionPending;
+const POS = D.position, POSN = PENDING ? null : parseInt(POS), POSS = PENDING ? null : POS.slice(-1);
+let refBan = D.order[0], rowMax = 40, sel = null, doneOpen = false;
+let ticked = new Set(), dbRef = null, canWrite = true, saveTimer = null;
+
+const P = k => D.pools[k];
+const cell = (k, s, n) => P(k)[s][n-1];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const own = c => OWNED.has(c);
+
+function drawStats(){
+  const r = D.resources;
+  const rows = [
+    ['目前位置', PENDING ? '待確認' : POS, PENDING ? '上次已知 ' + D.positionLast : '', PENDING ? 0 : 1],
+    ['罐頭', r['罐頭'], '扣掉今天那發必中前的數字', 0],
+    ['稀有卷', r['稀有卷'], '可推進 ' + r['稀有卷'] + ' 格'],
+    ['黑金卷', r['黑金卷'], '傳說轉蛋單抽'],
+    ['白金卷', r['白金卷'], '已用完'],
+    ['名冊', (OWNED.size + ticked.size) + ' / ' + D.roster.ubers, '已確認 ' + OWNED.size + '，勾選 ' + ticked.size],
+    ['有必中的池', D.order.filter(k => P(k).guar).length + ' 個', '今天之後歸零', 1],
+    ['下一個貓咪季', '10/30', '超級貓咪祭 1069（無必中）'],
+  ];
+  document.getElementById('stats').innerHTML = rows.map(([k, v, n, hl]) =>
+    `<div class="stat${hl ? ' hl' : ''}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
+}
+
+function drawDone(){
+  const d = D.done;
+  const dh = document.getElementById('doneHint');
+  if(dh) dh.textContent = d.span;
+  const steps = doneOpen ? d.steps : d.steps.filter(s => s.got.length);
+  const body = steps.map(s => `<div class="rrow${s.got.length ? ' get' : ''}">
+      <span class="pos">${esc(s.from)}</span>
+      <span class="pay">${esc(s.pay)}</span>
+      <span class="cat">${s.got.length ? '<b style="color:var(--gold)">' + s.got.map(esc).join('、') + '</b>' : '<span style="color:var(--ink-3)">推進到 ' + esc(s.to) + '</span>'}</span>
+      <span class="why">${esc(s.pool)}</span></div>`).join('');
+  const c = d.cost;
+  document.getElementById('done').innerHTML = body
+    + `<div class="rrow goal"><span class="pos">合計</span><span class="pay"></span>
+       <span class="cat"><b>收 ${d.got.length} 隻超激</b></span>
+       <span class="why">罐頭 ${c['罐頭']} · 卷 ${c['稀有卷']}+${c['黑金卷']}</span></div>`
+    + `<button class="fold" type="button" id="doneBtn">${doneOpen ? '只顯示有收穫的步驟' : '展開全部 ' + d.steps.length + ' 步'}</button>`;
+}
+
+function drawNow(){
+  const w = document.getElementById('posWarn');
+  const g = document.getElementById('now');
+  if(PENDING){
+    w.hidden = false; g.hidden = true;
+    document.getElementById('posTitle').textContent = '位置待確認';
+    document.getElementById('posHint').textContent = '貼一個目前的 godfat 網址給我就能重新定位';
+    w.innerHTML = `<h3>這發必中對不上表上任何起點</h3><p>${esc(D.positionNote)}</p>`;
+    return;
+  }
+  w.hidden = true; g.hidden = false;
+  const hit = D.order.filter(k => HI.has(cell(k, POSS, POSN)[1]) && !own(cell(k, POSS, POSN)[0]));
+  document.getElementById('posHint').textContent =
+    hit.length ? `${hit.length} 個池在這格給你還沒有的超激` : '這一格每個池都是雜魚';
+  g.innerHTML = D.order.map(k => {
+    const [nm, rr] = cell(k, POSS, POSN);
+    return `<div class="dc${HI.has(rr) && !own(nm) ? ' hi' : ''}">
+      <div class="s">${esc(k)} · ${esc(P(k).pay)} · ${esc(P(k).period)}</div>
+      <div class="v"${own(nm) ? ' style="text-decoration:line-through;color:var(--ink-3)"' : ''}>${esc(nm)}</div></div>`;
+  }).join('');
+}
+
+function drawPools(){
+  document.getElementById('pools').innerHTML = D.order.map(k => {
+    const p = P(k);
+    return `<div class="rrow${p.guar ? ' get' : ''}">
+      <span class="pos">${esc(k)}</span>
+      <span class="pay">${esc(p.pay)}</span>
+      <span class="cat">${esc(p.label)}</span>
+      <span class="why">${p.guar ? '有必中 · ' : '單抽 · '}${esc(p.period)}</span></div>`;
+  }).join('');
+}
+
+function drawCheck(){
+  const box = document.getElementById('check');
+  box.className = 'chips ck' + (canWrite ? '' : ' off');
+  box.innerHTML = D.unknown.map(u =>
+    `<button class="chip" type="button" role="checkbox" data-ck="${esc(u.name)}"
+      aria-pressed="${ticked.has(u.name)}"${canWrite ? '' : ' disabled'}>${esc(u.name)}<span class="po">${esc(u.pools.join(' '))}</span></button>`).join('');
+  document.getElementById('ckCount').textContent =
+    `已勾 ${ticked.size} / ${D.unknown.length} 隻　（加上已確認的 ${OWNED.size} 隻 = ${OWNED.size + ticked.size}，你說有 ${D.roster.ubers} 隻超激）`;
+}
+
+function saveTicks(){
+  if(!dbRef) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    dbRef.set({ names: [...ticked].sort(), updatedAt: new Date().toISOString() })
+      .catch(err => {
+        if(err && err.code === 'invalid_argument'){ canWrite = false; drawCheck(); warn('這個檢視沒有寫入權限，勾選不會被保存。'); }
+      });
+  }, 400);
+}
+
+function warn(msg){
+  const w = document.getElementById('ckWarn');
+  w.hidden = false;
+  w.innerHTML = `<h3>勾選沒有保存</h3><p>${esc(msg)}你還是可以直接在對話裡告訴我哪幾隻你有。</p>`;
+}
+
+async function initDb(){
+  let db = null;
+  try { db = await window.claude?.use?.('db') ?? null; } catch (e) { db = null; }
+  if(!db){ canWrite = false; drawCheck(); warn('這個檢視無法連到資料存放區。'); return; }
+  dbRef = db.doc('roster/owned');
+  dbRef.onSnapshot(snap => {
+    const d = snap.exists ? snap.data() : null;
+    const names = (d && Array.isArray(d.names)) ? d.names : [];
+    ticked = new Set(names.filter(n => D.unknown.some(u => u.name === n)));
+    drawCheck(); drawStats();
+  }, err => {
+    canWrite = false; drawCheck();
+    warn(err && err.code === 'revoked' ? '存取權限在開啟期間被收回。' : '連線中斷。');
+  });
+}
+
+function drawOwned(){
+  const list = D.done.got;
+  document.getElementById('ownCount').textContent = OWNED.size + ' 隻，綠色是這趟新收的';
+  document.getElementById('owned').innerHTML = D.owned.map(c =>
+    `<span class="chip${list.includes(c) ? ' new' : ''}">${esc(c)}</span>`).join('');
+}
+
+function drawLadder(){
+  const p = P(refBan);
+  const lad = document.getElementById('ladder');
+  const head = lad.firstElementChild;
+  lad.innerHTML = ''; lad.appendChild(head);
+  const frag = document.createDocumentFragment();
+  for(let n = 1; n <= rowMax; n++){
+    const row = document.createElement('div'); row.className = 'row';
+    for(const side of ['A', 'rail', 'B']){
+      if(side === 'rail'){
+        const rail = document.createElement('div'); rail.className = 'rail';
+        const wallA = p.reroll['A' + n], wallB = p.reroll['B' + n];
+        let svg = '';
+        if(wallA) svg += '<path d="M10 21 L40 32" stroke="var(--rose)" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>';
+        if(wallB) svg += '<path d="M40 21 L10 32" stroke="var(--rose)" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>';
+        rail.innerHTML = `<svg viewBox="0 0 50 42" preserveAspectRatio="none">${svg}</svg><span class="num">${n}</span>`;
+        row.appendChild(rail);
+        continue;
+      }
+      const [nm, rr] = cell(refBan, side, n);
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.pos = side + n;
+      const here = (!PENDING && side === POSS && n === POSN);
+      b.className = 'cell' + (side === 'B' ? ' b' : '')
+        + (HI.has(rr) ? ' goalcell' : '')
+        + (p.reroll[side + n] ? ' walled' : '')
+        + (here ? ' picked' : '');
+      const g = p.G[side + n];
+      b.innerHTML = `<div class="cr${HI.has(rr) ? ' hi' : ''}"${own(nm) ? ' style="text-decoration:line-through;opacity:.55"' : ''}>${esc(nm)}</div>`
+        + `<div class="cn">${here ? '← 你在這' : (g ? '必中 → ' + esc(g[1]) : '')}</div>`;
+      row.appendChild(b);
+    }
+    frag.appendChild(row);
+    if(sel === 'A' + n || sel === 'B' + n){
+      const side = sel[0];
+      const d = document.createElement('div'); d.className = 'detail';
+      const cells = D.order.map(k => {
+        const [nm2, rr2] = cell(k, side, n);
+        const g2 = P(k).G[side + n];
+        return `<div class="dc${HI.has(rr2) && !own(nm2) ? ' hi' : ''}">
+          <div class="s">${esc(k)} · ${esc(P(k).label)}</div>
+          <div class="v"${own(nm2) ? ' style="text-decoration:line-through;color:var(--ink-3)"' : ''}>${esc(nm2)}</div>
+          ${g2 ? `<div class="s">必中 ${esc(g2[0])} → ${esc(g2[1])}</div>` : ''}</div>`;
+      }).join('');
+      const w = P(refBan).reroll[side + n];
+      d.innerHTML = `<div class="dtop"><span class="dpos">${n}${side}</span>`
+        + (w ? `<span class="dnote">這格會重複 reroll → 換軌到 ${esc(w[1])}，重抽成 ${esc(w[0])}</span>` : '')
+        + `</div><div class="dgrid">${cells}</div>`;
+      frag.appendChild(d);
+    }
+  }
+  lad.appendChild(frag);
+}
+
+function drawRoute(){
+  const r = D.route;
+  const sec = document.getElementById('routeSec');
+  if(!r){ if(sec) sec.hidden = true; return; }
+  if(sec) sec.hidden = false;
+  document.getElementById('routeHint').textContent = r.summary;
+  document.getElementById('routeWarn').innerHTML =
+    `<h3>今天之內</h3><p>${esc(r.deadline)}。</p>`
+    + `<p>成本 罐頭 ${r.cost['罐頭']}、金卷 ${r.cost['稀有卷']}；做完還剩 金卷 ${r.left['稀有卷']}、黑金卷 ${r.left['黑金卷']}。</p>`;
+  document.getElementById('route').innerHTML = r.steps.map(st => {
+    const opts = st.opts.length
+      ? st.opts.map(o => `<span class="chip">${esc(o[0])} ${esc(o[1])}</span>`).join(' ')
+      : `<span style="color:var(--ink-3);font-size:12px">${esc(st.note)}</span>`;
+    return `<div class="rrow${st.opts.length ? ' get' : ''}" style="grid-template-columns:86px 150px 1fr">
+      <span class="pos">${esc(st.pos)}</span>
+      <span class="pay">${esc(st.pay)}</span>
+      <span class="cat">${opts}</span></div>`;
+  }).join('');
+}
+
+function render(){ drawRoute(); drawStats(); drawDone(); drawNow(); drawPools(); drawCheck(); drawOwned(); drawLadder(); }
+
+document.addEventListener('click', e => {
+  if(e.target.id === 'doneBtn'){ doneOpen = !doneOpen; drawDone(); return; }
+  if(e.target.id === 'ckClear'){
+    if(!canWrite || !ticked.size) return;
+    ticked = new Set(); drawCheck(); drawStats(); saveTicks(); return;
+  }
+  const ck = e.target.closest('[data-ck]');
+  if(ck){
+    if(!canWrite) return;
+    const nm = ck.dataset.ck;
+    ticked.has(nm) ? ticked.delete(nm) : ticked.add(nm);
+    drawCheck(); drawStats(); saveTicks(); return;
+  }
+  const c = e.target.closest('.cell');
+  if(c){ sel = (sel === c.dataset.pos) ? null : c.dataset.pos; drawLadder(); }
+});
+document.addEventListener('change', e => {
+  if(e.target.id === 'refBan'){ refBan = e.target.value; sel = null; drawLadder(); }
+  if(e.target.id === 'rowMax'){ rowMax = +e.target.value; drawLadder(); }
+});
+
+document.getElementById('refBan').innerHTML = D.order.map(k =>
+  `<option value="${k}"${k === refBan ? ' selected' : ''}>${esc(k)} · ${esc(P(k).label)}${P(k).guar ? '（有必中）' : ''}</option>`).join('');
+render();
+initDb();
+</script>

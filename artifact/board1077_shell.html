@@ -1,0 +1,455 @@
+<title>抽軌規劃盤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* 版面：單欄 1040px，狀態列→機制警示→方案→逐格路線→雙軌梯圖 */
+:root{
+  --bg:#ECEEF3; --surface:#FFFFFF; --surface-2:#F5F6FA; --surface-3:#E4E7EF;
+  --ink:#171A24; --ink-2:#5B6178; --ink-3:#868CA1;
+  --line:#D3D7E2; --line-strong:#B6BCCC;
+  --gold:#8C6205; --gold-soft:#F6E8C4; --gold-line:#DFC182;
+  --rose:#A42A4D; --rose-soft:#F9DCE3; --rose-line:#E7B3C0;
+  --jade:#136B52; --jade-soft:#D7EDE5; --jade-line:#9ACBBA;
+  --violet:#5B3C93; --violet-soft:#E7E0F5; --violet-line:#BCA8E0;
+  --trackA:#17647F; --trackB:#71428A;
+  --shadow:0 1px 2px rgba(23,26,36,.06), 0 8px 24px -12px rgba(23,26,36,.18);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --jade:#6CCBAB; --jade-soft:#123028; --jade-line:#2C5D4D;
+  --violet:#B79BE8; --violet-soft:#241A3A; --violet-line:#4A3A6E;
+  --trackA:#66BAD4; --trackB:#C293D7;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#12141C; --surface:#1B1E27; --surface-2:#222633; --surface-3:#2B303E;
+  --ink:#E7E9F0; --ink-2:#99A0B4; --ink-3:#757C90;
+  --line:#2F3444; --line-strong:#434A5E;
+  --gold:#E2B44A; --gold-soft:#3E3210; --gold-line:#6B5620;
+  --rose:#F28BA6; --rose-soft:#461E2B; --rose-line:#78354B;
+  --jade:#6CCBAB; --jade-soft:#123028; --jade-line:#2C5D4D;
+  --violet:#B79BE8; --violet-soft:#241A3A; --violet-line:#4A3A6E;
+  --trackA:#66BAD4; --trackB:#C293D7;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); margin:0; font-size:15px; line-height:1.6;
+  font-family:"Noto Sans TC",system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px; margin:0 auto; padding-inline:16px; padding-block:28px 72px}
+h1,h2,h3{font-family:"Archivo","Noto Sans TC",system-ui,sans-serif; margin:0; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-3); margin-bottom:10px}
+h1{font-size:clamp(26px,5.4vw,38px); font-weight:800; letter-spacing:-.02em; line-height:1.15}
+.sub{color:var(--ink-2); margin-top:10px; max-width:62ch; font-size:14.5px}
+
+.stats{display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
+  background:var(--line); border:1px solid var(--line); margin-top:22px}
+@media (min-width:560px){ .stats{grid-template-columns:repeat(4,1fr)} }
+.stat{background:var(--surface); padding:11px 13px; min-width:0}
+.stat .k{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--ink-3)}
+.stat .v{font-family:"IBM Plex Mono",monospace; font-size:19px; font-weight:600; margin-top:2px;
+  font-variant-numeric:tabular-nums}
+.stat .n{font-size:11.5px; color:var(--ink-3)}
+.stat.hl .v{color:var(--jade)}
+
+.sec{margin-top:40px}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:14px; flex-wrap:wrap}
+.sec-head h2{font-size:15px; font-weight:700}
+.sec-head .hint{font-size:12.5px; color:var(--ink-3)}
+
+.warn{border:1px solid var(--rose-line); background:var(--rose-soft); padding:15px 17px}
+.warn h3{font-size:13.5px; font-weight:700; color:var(--rose); margin-bottom:7px}
+.warn p{margin:0 0 8px; font-size:13.5px; color:var(--ink); line-height:1.65}
+.warn p:last-child{margin-bottom:0}
+.warn code{font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  background:var(--surface); padding:1px 5px; border-radius:2px}
+
+.chips{display:flex; flex-wrap:wrap; gap:5px}
+.chip{font-family:"IBM Plex Mono",monospace; font-size:11.5px; padding:3px 8px; border-radius:2px;
+  border:1px solid var(--line); background:var(--surface-2); color:var(--ink-2)}
+.chip.new{background:var(--jade-soft); color:var(--jade); border-color:var(--jade-line); font-weight:600}
+.chip.tgt{background:var(--rose-soft); color:var(--rose); border-color:var(--rose-line); font-weight:700}
+.chip.leg{background:var(--violet-soft); color:var(--violet); border-color:var(--violet-line); font-weight:600}
+
+.plans{display:grid; grid-template-columns:repeat(auto-fit,minmax(214px,1fr)); gap:10px}
+.pcard{all:unset; cursor:pointer; display:block; background:var(--surface);
+  border:1px solid var(--line); padding:13px 15px; transition:border-color .12s}
+.pcard:hover{border-color:var(--line-strong)}
+.pcard:focus-visible{outline:2px solid var(--trackA); outline-offset:2px}
+.pcard[aria-pressed="true"]{border-color:var(--ink)}
+.ptop{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.pn{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px}
+.pf{font-family:"Archivo","Noto Sans TC",sans-serif; font-weight:700; font-size:14px; color:var(--violet)}
+.pb{font-size:12.5px; color:var(--ink-2); margin-top:7px; line-height:1.5}
+
+.route{border:1px solid var(--line); background:var(--surface); overflow-x:auto}
+.rrow{display:grid; grid-template-columns:52px 86px 1fr 150px; gap:10px; padding:7px 14px;
+  border-top:1px solid var(--line); align-items:center; font-size:13px; min-width:460px}
+.rrow:first-child{border-top:none}
+.rrow.wall{background:var(--rose-soft)}
+.rrow.get{background:var(--jade-soft)}
+.rrow.goal{background:var(--gold-soft)}
+.rrow .pos{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:12.5px}
+.rrow .pay{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2)}
+.rrow .cat{min-width:0}
+.rrow .cat b{font-weight:700}
+.rrow .why{font-size:11.5px; color:var(--ink-3); text-align:right}
+.rrow select{font:inherit; font-size:12px; padding:3px 5px; background:var(--surface-2);
+  color:var(--ink); border:1px solid var(--line); border-radius:2px; max-width:100%}
+.fold{all:unset; cursor:pointer; display:block; width:100%; padding:7px 14px; text-align:center;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3);
+  background:var(--surface-2); border-top:1px solid var(--line)}
+.fold:hover{color:var(--ink)}
+.fold:focus-visible{outline:2px solid var(--trackA); outline-offset:-2px}
+
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-bottom:12px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px;
+  vertical-align:-1px; border:1px solid var(--line-strong)}
+.refpick{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+.refpick select{font:inherit; font-size:12px; padding:4px 6px; background:var(--surface-2);
+  color:var(--ink); border:1px solid var(--line); border-radius:2px}
+.ladder{border-top:1px solid var(--line)}
+.hrow,.row{display:grid; grid-template-columns:1fr 50px 1fr}
+.hrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-3); padding:8px 0; position:sticky;
+  top:env(safe-area-inset-top,0px); background:var(--bg); z-index:5; border-bottom:1px solid var(--line)}
+.hrow span:first-child{color:var(--trackA); padding-left:11px}
+.hrow span:last-child{color:var(--trackB); text-align:right; padding-right:11px}
+.hrow span:nth-child(2){text-align:center; letter-spacing:.06em}
+.rail{position:relative; display:flex; align-items:center; justify-content:center;
+  font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3);
+  border-inline:1px solid var(--line); background:var(--surface-2)}
+.rail svg{position:absolute; inset:0; width:100%; height:100%; overflow:visible}
+.rail .num{position:relative; z-index:1; background:var(--surface-2); padding:0 2px}
+.cell{all:unset; cursor:pointer; display:block; padding:5px 11px; height:42px; overflow:hidden;
+  border-bottom:1px solid var(--line); min-width:0}
+.cell.b{text-align:right}
+.cell:hover{background:var(--surface-3)}
+.cell:focus-visible{outline:2px solid var(--trackA); outline-offset:-2px}
+.cell.on{border-left:3px solid var(--trackA)}
+.cell.off .cr{color:var(--ink-3)}
+.cell.off .cn{opacity:.55}
+.cell.walled{background:var(--rose-soft)}
+.cell.picked{background:var(--jade-soft)}
+.cell.goalcell{background:var(--gold-soft)}
+.cr{font-size:12.5px; font-weight:500; line-height:1.3; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+.cr.hi{color:var(--gold); font-weight:700}
+.cr.tgt{color:var(--rose); font-weight:700}
+.cn{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3); margin-top:1px}
+.detail{grid-column:1/-1; background:var(--surface); border-bottom:1px solid var(--line);
+  padding:13px 15px; box-shadow:var(--shadow)}
+.dtop{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; margin-bottom:9px}
+.dpos{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:16px}
+.dnote{font-size:12.5px; color:var(--ink-2)}
+.dgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(172px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line)}
+.dc{background:var(--surface); padding:7px 10px; min-width:0}
+.dc.hi{background:var(--gold-soft)}
+.dc .s{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3)}
+.dc .v{font-size:12.5px; line-height:1.35}
+
+.mech{display:grid; grid-template-columns:repeat(auto-fit,minmax(236px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line)}
+.mech div{background:var(--surface); padding:14px 15px; min-width:0}
+.mech h3{font-size:13px; font-weight:700; margin-bottom:6px}
+.mech p{margin:0; font-size:13px; color:var(--ink-2); line-height:1.6}
+.mech code{font-family:"IBM Plex Mono",monospace; font-size:12px;
+  background:var(--surface-2); padding:1px 4px; border-radius:2px}
+footer{margin-top:44px; padding-top:18px; border-top:1px solid var(--line);
+  font-size:12px; color:var(--ink-3); line-height:1.7}
+@media (max-width:620px){
+  .row,.hrow{grid-template-columns:1fr 38px 1fr}
+  .cell{padding:5px 8px}
+  .cr{font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">貓咪大戰爭 · seed 1830146318 · 所有池共用同一個位置計數器</div>
+    <h1>抽軌規劃盤</h1>
+    <p class="sub">目標是 1077 搖滾俏喵轉蛋 46A 的限定超激。這池沒有必中 11 連，所以只能一格一格走到 46A；路上有兩道「重複 reroll」會把你彈到 B 軌，必須用黑金卷拆掉。</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head"><h2>擋路的機制</h2><span class="hint">已用 godfat 的 last= 參數實測確認</span></div>
+    <div class="warn">
+      <h3>重複 reroll：19A 與 21A 會把你丟到 B 軌</h3>
+      <p>當「這一格要給的貓」正好等於「上一抽實際抽到的貓」，系統會重抽，多吃掉一個亂數格，於是換軌：<code>A[n] → B[n+1]</code>、<code>B[n] → A[n+2]</code>。這跟是不是 11 連無關，只看上一抽的結果。</p>
+      <p>1077 在 18A／19A 連續兩格都是貓咪格鬥家，20A／21A 連續兩格都是拳擊手貓，所以 19A 和 21A 各是一道牆。七個食物池在這幾格給的貓<strong>完全一樣</strong>，換食物池沒用；只有黑金卷給不同的貓，能把鏈子斷開 —— 而那兩格剛好是命運之子佛諾和幼獸加爾，兩隻都還沒有。</p>
+      <p>第三道牆在 50A（49A／50A 都是侏羅貓）。拆它要再花一張黑金卷在雜魚格上，不划算，所以路線走到 47A 收手。</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>第三張黑金卷放哪</h2>
+      <span class="hint">19A、21A 鎖死用來拆牆；第三張自由，四種成本與收穫隻數完全相同</span></div>
+    <div class="plans" id="plans"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>這趟的收穫</h2>
+      <span class="hint">紫＝黑金卷拿到的 Exclusive，綠＝食物池的超激，紅＝目標</span></div>
+    <div class="chips" id="haul"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>逐格路線</h2>
+      <span class="hint">24A／26A／44A／47A 可以換池，下拉選單會即時重算</span></div>
+    <div class="route" id="route"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>雙軌</h2><span class="hint">點任一格看八個來源各給什麼</span></div>
+    <div class="legend">
+      <span><i style="background:var(--trackA)"></i>路線走在 A 軌</span>
+      <span><i style="background:var(--jade-soft); border-color:var(--jade-line)"></i>收到超激</span>
+      <span><i style="background:var(--rose-soft); border-color:var(--rose-line)"></i>reroll 牆</span>
+      <span><i style="background:var(--gold-soft); border-color:var(--gold-line)"></i>目標 46A</span>
+      <span>金字＝該池的超激格</span>
+    </div>
+    <div class="refpick">
+      <label for="refBan">沒走到的格子顯示</label>
+      <select id="refBan"></select>
+      <label for="rowMax">顯示到</label>
+      <select id="rowMax">
+        <option value="60">第 60 行</option>
+        <option value="100">第 100 行</option>
+      </select>
+    </div>
+    <div class="ladder" id="ladder">
+      <div class="hrow"><span>A 軌</span><span>行</span><span>B 軌</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>機制</h2></div>
+    <div class="mech">
+      <div><h3>共用位置</h3><p>每一抽都推進同一個計數器，不管抽的是哪個池。所以「先抽哪個池」會改變後面所有池的結果，八個池是同一條時間軸上的選擇，不是八筆預算。</p></div>
+      <div><h3>單抽怎麼走</h3><p>一次單抽吃兩個亂數格，位置在同一軌前進一格：<code>A[n] → A[n+1]</code>。普通 11 連就是連續 11 次單抽，同軌前進 11 格，不換軌。</p></div>
+      <div><h3>必中 11 連</h3><p>必中會多吃一格、必定翻軌：<code>A[n] → B[n+10]</code>。但 1077、1078、1043、946、991、1059 目前都沒有必中選項，所以 10/16 以前換不了軌。下一個有必中的是 10/16 開的 1068。</p></div>
+      <div><h3>罐頭留著</h3><p>罐頭最划算的用途是必中 11 連，而這段路全部用卷就走得完。2000 罐頭留給 10/16 的 1068，剛好打一發必中。</p></div>
+    </div>
+  </section>
+
+  <footer>
+    資料來源：godfat 抽蛋模擬器，seed 1830146318 / last 595，編號為目前視圖（玩家位置 2A）。
+    1077 於 10/05–10/09 與 10/09–10/16 兩個期間的 200 格逐格比對完全相同。
+    各池是否有原生必中，以 Fate 1081（已知有必中）為對照組判定。
+    路線已逐格模擬驗證不觸發 reroll。
+  </footer>
+</div>
+
+<script>
+const D = __DATA__;
+</script>
+<script>
+/* ---------- 狀態 ---------- */
+const HI = new Set(D.hi);
+const OWNED = new Set(D.owned);
+const START = 2, GOAL = 46, END = 47;
+const WALLS = [19, 21];                 // 必須用黑金卷拆
+const THIRD_OPTS = [17, 23, 33, 42];    // 第三張黑金卷可選的格
+const CHOICE_CELLS = [24, 26, 44, 47];  // 食物池有超激、可換池的格
+let third = 17;
+let choice = {24:'1077', 26:'1077', 44:'1078', 47:'1078'};
+let sel = null;                          // 梯圖展開的格
+let refBan = '1077';
+let rowMax = 60;
+let showAll = false;
+
+const pool = k => D.pools[k];
+const cat = (k, side, n) => pool(k)[side][n-1];
+const isHi = (k, side, n) => HI.has(cat(k, side, n)[1]);
+
+/* ---------- 路線計算 ---------- */
+function buildRoute(){
+  const legCells = new Set([...WALLS, third]);
+  let last = '冥佑天女露娜夏', rare = 0, leg = 0;
+  const steps = [], haul = [];
+  for(let n = START; n <= END; n++){
+    const p = legCells.has(n) ? '黑金卷' : (n === GOAL ? '1077' : (choice[n] || '1077'));
+    const [name, rar] = cat(p, 'A', n);
+    const dup = name === last;
+    const hi = HI.has(rar);
+    const already = OWNED.has(name) || haul.some(h => h.name === name);
+    if(hi && !already) haul.push({n, name, pool:p, rar});
+    if(legCells.has(n)) leg++; else rare++;
+    steps.push({n, pool:p, name, rar, hi, dup, already,
+                wall: WALLS.includes(n), third: n === third,
+                goal: n === GOAL, got: hi && !already});
+    last = name;
+  }
+  return {steps, haul, rare, leg};
+}
+
+/* ---------- 繪製 ---------- */
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function drawStats(r){
+  const bad = r.steps.filter(s => s.dup).length;
+  const el = [
+    ['目前位置', D.position, '上一抽 冥佑天女露娜夏'],
+    ['目標', '46A 搖滾俏喵', '限定超激 · 期限 10/16'],
+    ['這趟要走', (END - START + 1) + ' 抽', '2A → 47A，全程 A 軌'],
+    ['稀有卷', r.rare + ' / ' + D.resources['稀有卷'], '剩 ' + (D.resources['稀有卷'] - r.rare) + ' 張', 1],
+    ['黑金卷', r.leg + ' / ' + D.resources['黑金卷'], '剩 ' + (D.resources['黑金卷'] - r.leg) + ' 張', 1],
+    ['罐頭', '0 / ' + D.resources['罐頭'], '完全不用動', 1],
+    ['收穫', r.haul.length + ' 隻超激', '全部未持有', 1],
+    ['踩到 reroll', bad + ' 次', bad ? '路線有問題' : '驗證通過', bad ? 0 : 1],
+  ];
+  document.getElementById('stats').innerHTML = el.map(([k, v, n, hl]) =>
+    `<div class="stat${hl ? ' hl' : ''}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
+}
+
+function drawPlans(){
+  document.getElementById('plans').innerHTML = THIRD_OPTS.map(n => {
+    const [name] = cat('黑金卷', 'A', n);
+    return `<button class="pcard" type="button" data-third="${n}" aria-pressed="${n === third}">
+      <div class="ptop"><span class="pn">${n}A</span><span class="pf">${esc(name)}</span></div>
+      <div class="pb">食物池在這格只給雜魚，只有黑金卷拿得到這隻 Exclusive。</div></button>`;
+  }).join('');
+}
+
+function drawRoute(r){
+  const rows = r.steps.map(s => {
+    let cls = '';
+    if(s.goal) cls = ' goal'; else if(s.wall || s.third) cls = ' wall'; else if(s.got) cls = ' get';
+    let why = '';
+    if(s.wall) why = '拆 reroll 牆';
+    else if(s.third) why = '第三張黑金卷';
+    else if(s.goal) why = '目標';
+    else if(s.got) why = '超激';
+    else if(s.already && s.hi) why = '重複，跳過';
+    let catCell;
+    if(CHOICE_CELLS.includes(s.n) && !s.wall && !s.third){
+      const opts = D.order.filter(k => k !== '黑金卷' && isHi(k, 'A', s.n))
+        .map(k => `<option value="${k}"${k === choice[s.n] ? ' selected' : ''}>${esc(cat(k,'A',s.n)[0])} · ${esc(k)}</option>`).join('');
+      catCell = `<select data-cell="${s.n}" aria-label="${s.n}A 選池">${opts}</select>`;
+    } else {
+      catCell = `<b${s.hi ? ' style="color:var(--gold)"' : ''}>${esc(s.name)}</b>`;
+    }
+    return `<div class="rrow${cls}" data-n="${s.n}">
+      <span class="pos">${s.n}A</span>
+      <span class="pay">${esc(s.pool === '黑金卷' ? '黑金卷' : '稀有卷·' + s.pool)}</span>
+      <span class="cat">${catCell}</span>
+      <span class="why">${esc(why)}</span></div>`;
+  });
+  const keep = new Set();
+  r.steps.forEach(s => { if(s.wall || s.third || s.got || s.goal || s.n >= END - 1) keep.add(s.n); });
+  let html;
+  if(showAll){
+    html = rows.join('') + `<button class="fold" type="button" id="foldBtn">只顯示關鍵格</button>`;
+  } else {
+    const out = []; let skipped = 0;
+    r.steps.forEach((s, i) => {
+      if(keep.has(s.n)){
+        if(skipped){ out.push(`<div class="rrow"><span class="pos"></span><span class="pay"></span><span class="cat" style="color:var(--ink-3);font-size:12px">中間 ${skipped} 格都是雜魚，用稀有卷走過</span><span class="why"></span></div>`); skipped = 0; }
+        out.push(rows[i]);
+      } else skipped++;
+    });
+    html = out.join('') + `<button class="fold" type="button" id="foldBtn">展開全部 ${r.steps.length} 格</button>`;
+  }
+  document.getElementById('route').innerHTML = html;
+}
+
+function drawHaulChips(r){
+  const box = document.getElementById('haul');
+  if(!box) return;
+  box.innerHTML = r.haul.map(h =>
+    `<span class="chip ${h.name === '搖滾俏喵' ? 'tgt' : (h.pool === '黑金卷' ? 'leg' : 'new')}">${h.n}A ${esc(h.name)}</span>`).join('');
+}
+
+function drawLadder(r){
+  const onPath = new Map(r.steps.map(s => [s.n, s]));
+  const lad = document.getElementById('ladder');
+  const head = lad.firstElementChild;
+  lad.innerHTML = ''; lad.appendChild(head);
+  const frag = document.createDocumentFragment();
+  for(let n = 1; n <= rowMax; n++){
+    const row = document.createElement('div'); row.className = 'row';
+    const st = onPath.get(n);
+    for(const side of ['A', 'rail', 'B']){
+      if(side === 'rail'){
+        const rail = document.createElement('div'); rail.className = 'rail';
+        const inPath = st && n >= START;
+        const wall = WALLS.includes(n) || n === 50;
+        let path = inPath ? '<path d="M14 0 L14 42" stroke="var(--trackA)" stroke-width="2.5" fill="none"/>' : '';
+        if(wall) path += '<path d="M14 21 L34 32" stroke="var(--rose)" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>';
+        rail.innerHTML = `<svg viewBox="0 0 50 42" preserveAspectRatio="none">${path}</svg><span class="num">${n}</span>`;
+        row.appendChild(rail);
+        continue;
+      }
+      const useP = (side === 'A' && st) ? st.pool : refBan;
+      const [name, rar] = cat(useP, side, n);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cell' + (side === 'B' ? ' b' : '')
+        + (side === 'A' && st ? ' on' : ' off')
+        + (side === 'A' && st && st.goal ? ' goalcell' : '')
+        + (side === 'A' && st && st.got ? ' picked' : '')
+        + (side === 'A' && (WALLS.includes(n) || n === 50) ? ' walled' : '');
+      b.dataset.pos = side + n;
+      const tgt = name === '搖滾俏喵';
+      b.innerHTML = `<div class="cr${tgt ? ' tgt' : (HI.has(rar) ? ' hi' : '')}">${esc(name)}</div>`
+        + `<div class="cn">${side === 'A' && st ? esc(st.pool) : esc(useP)}</div>`;
+      row.appendChild(b);
+    }
+    frag.appendChild(row);
+    if(sel && (sel === 'A' + n || sel === 'B' + n)){
+      const side = sel[0];
+      const d = document.createElement('div'); d.className = 'detail';
+      const cells = D.order.map(k => {
+        const [nm, rr] = cat(k, side, n);
+        const own = OWNED.has(nm);
+        return `<div class="dc${HI.has(rr) ? ' hi' : ''}">
+          <div class="s">${esc(k)} · ${esc(pool(k).label)}</div>
+          <div class="v">${esc(nm)}${HI.has(rr) ? (own ? ' · 已有' : ' · ★未持有') : ''}</div></div>`;
+      }).join('');
+      const rrInfo = pool('1077').reroll[side + n];
+      d.innerHTML = `<div class="dtop"><span class="dpos">${side === 'A' ? n + 'A' : n + 'B'}</span>`
+        + (rrInfo ? `<span class="dnote">食物池在這格會重複 reroll → 換軌到 ${esc(rrInfo[1])}，重抽成 ${esc(rrInfo[0])}</span>` : '')
+        + `</div><div class="dgrid">${cells}</div>`;
+      frag.appendChild(d);
+    }
+  }
+  lad.appendChild(frag);
+}
+
+function render(){
+  const r = buildRoute();
+  drawStats(r); drawPlans(); drawRoute(r); drawHaulChips(r); drawLadder(r);
+}
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click', e => {
+  const pc = e.target.closest('.pcard');
+  if(pc){ third = +pc.dataset.third; render(); return; }
+  if(e.target.id === 'foldBtn'){ showAll = !showAll; render(); return; }
+  const cell = e.target.closest('.cell');
+  if(cell){ sel = (sel === cell.dataset.pos) ? null : cell.dataset.pos; render(); return; }
+});
+document.addEventListener('change', e => {
+  if(e.target.dataset.cell){ choice[+e.target.dataset.cell] = e.target.value; render(); return; }
+  if(e.target.id === 'refBan'){ refBan = e.target.value; render(); return; }
+  if(e.target.id === 'rowMax'){ rowMax = +e.target.value; render(); return; }
+});
+
+const rb = document.getElementById('refBan');
+rb.innerHTML = D.order.map(k => `<option value="${k}"${k === refBan ? ' selected' : ''}>${esc(k)} · ${esc(pool(k).label)}</option>`).join('');
+render();
+</script>
