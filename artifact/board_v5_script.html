@@ -192,7 +192,8 @@ function drawRoute(){
   document.getElementById('routeHint').textContent = r.summary;
   document.getElementById('routeWarn').innerHTML =
     `<h3>今天之內</h3><p>${esc(r.deadline)}。</p>`
-    + `<p>成本 罐頭 ${r.cost['罐頭']}、金卷 ${r.cost['稀有卷']}；做完還剩 金卷 ${r.left['稀有卷']}、黑金卷 ${r.left['黑金卷']}。</p>`;
+    + `<p>成本 罐頭 ${r.cost['罐頭']}、金卷 ${r.cost['稀有卷']}；做完還剩 金卷 ${r.left['稀有卷']}、黑金卷 ${r.left['黑金卷']}。</p>`
+    + (r.caveat ? `<p><b>資料限制：</b>${esc(r.caveat)}</p>` : '');
   document.getElementById('route').innerHTML = r.steps.map(st => {
     const opts = st.opts.length
       ? st.opts.map(o => `<span class="chip">${esc(o[0])} ${esc(o[1])}</span>`).join(' ')
