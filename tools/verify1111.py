@@ -6,7 +6,9 @@ from data import player_profile as PP
 
 D = sys.argv[1]
 TICKET_PICK = sys.argv[2] if len(sys.argv) > 2 else '55,62'   # 票券放哪兩格
-EV = {'1080': '2026-11-09_1080', '926': '2026-11-09_926',
+P38 = sys.argv[3] if len(sys.argv) > 3 else '1080'            # 38B 抽哪個池
+P70 = sys.argv[4] if len(sys.argv) > 4 else '1080'            # 70B 抽哪個池
+EV = {'1080': '2026-11-09_1080', '1079': '2026-11-09_1079', '926': '2026-11-09_926',
       '1071': '2026-10-16_1071', '1072': '2026-10-16_1072'}
 P = {k: json.load(open(os.path.join(D, 'dl1111', f'full_{e}.json'))) for k, e in EV.items()}
 HI = {'exclusive', 'uber', 'legend'}
@@ -75,10 +77,10 @@ guaranteed('1080')                     # 25A → 35B
 for n in range(35, 80):                # 35B..79B
     if n in picks:
         single('1071' if plat else '1072', '白金卷' if plat else '黑金卷')
-    elif n == 38: single('1080', '金卷' if tick else '罐頭')
+    elif n == 38: single(P38, '金卷' if tick else '罐頭')
     elif n == 39: single('926',  '金卷' if tick else '罐頭')
     elif n == 56: single('926',  '金卷' if tick else '罐頭')
-    elif n == 70: single('1080', '金卷' if tick else '罐頭')
+    elif n == 70: single(P70, '金卷' if tick else '罐頭')
     elif n == 79: single('926',  '金卷' if tick else '罐頭')
     else:         single('1080', '金卷' if tick else '罐頭')
 guaranteed('926')                      # 80B → 91B
